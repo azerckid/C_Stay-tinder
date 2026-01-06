@@ -42,10 +42,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { Toaster } from "sonner";
+
 export default function App() {
   return (
     <SelectedDestinationsProvider>
       <Outlet />
+      <Toaster theme="dark" position="top-center" />
     </SelectedDestinationsProvider>
   );
 }

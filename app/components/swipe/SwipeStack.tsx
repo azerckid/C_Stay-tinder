@@ -35,6 +35,18 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
             removeDestination(current.id);
         }
 
+        // 서버에 액션 전송 (Fire and forget, 낙관적 업데이트)
+        const action = direction === "right" ? "like" : direction === "left" ? "pass" : "superlike";
+        const formData = new FormData();
+        formData.append("placeId", current.id);
+        formData.append("action", action);
+
+        // 인증 여부는 서버에서 체크하므로 클라이언트는 보낸다.
+        fetch("/api/swipes", {
+            method: "POST",
+            body: formData,
+        }).catch(err => console.error("Failed to save swipe:", err));
+
         // 마지막 카드를 넘기면 다시 처음부터 스택을 채움 (무한 루프)
         if (remaining.length === 0) {
             setStack(initialDestinations);

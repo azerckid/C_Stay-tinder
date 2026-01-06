@@ -1,9 +1,36 @@
 import type { Route } from "./+types/home";
 import { Link, useLocation } from "react-router";
 import { SwipeStack } from "~/components/swipe/SwipeStack";
-import { MOCK_DESTINATIONS } from "~/lib/mock-data";
 import { User, Home as HomeIcon, Heart, Map as MapIcon, Settings2, Compass } from "lucide-react";
 import { useSelectedDestinations } from "~/lib/contexts/SelectedDestinationsContext";
+import { authClient } from "~/lib/auth-client";
+import { LoginButton, LogoutButton } from "~/components/auth/AuthButtons";
+import { db } from "~/db";
+import { places } from "~/db/schema";
+import { useLoaderData } from "react-router";
+
+export async function loader() {
+  const allPlaces = await db.select().from(places);
+
+  // DB 스키마 -> 컴포넌트 Props 구조 변환
+  const destinations = allPlaces.map((place) => ({
+    id: place.id,
+    name: place.name,
+    location: place.location,
+    country: place.country,
+    imageUrl: place.imageUrl || "", // null 처리
+    rating: place.rating || 0,
+    reviewCount: place.reviewCount || 0,
+    tags: (place.tags as string[]) || [], // tags가 any/unknown일 수 있으므로 캐스팅
+    description: place.description || "",
+    coordinates: {
+      lat: place.lat || 0,
+      lng: place.lng || 0,
+    },
+  }));
+
+  return { destinations };
+}
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -12,10 +39,8 @@ export function meta({ }: Route.MetaArgs) {
   ];
 }
 
-import { authClient } from "~/lib/auth-client";
-import { LoginButton, LogoutButton } from "~/components/auth/AuthButtons";
-
 export default function Home() {
+  const { destinations } = useLoaderData<typeof loader>();
   const location = useLocation();
   const { data: session } = authClient.useSession();
   const { selectedDestinations } = useSelectedDestinations();
@@ -58,7 +83,7 @@ export default function Home() {
 
       {/* Main Content: Swipe Area - Full-screen filling logic */}
       <main className="flex-1 relative w-full max-w-md mx-auto min-h-0">
-        <SwipeStack destinations={MOCK_DESTINATIONS} />
+        <SwipeStack destinations={destinations} />
       </main>
 
       {/* Bottom Navigation Bar - Stitch Themed */}
