@@ -22,5 +22,6 @@ export const auth = betterAuth({
         },
         // Kakao, Twitter can be added here
     },
+    basePath: "/auth",
     // Add other configurations as needed
 });

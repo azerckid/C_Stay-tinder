@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 // 1. Better Auth Tables
@@ -60,10 +60,11 @@ export const places = sqliteTable("places", {
     country: text("country").notNull(),
     description: text("description"),
     imageUrl: text("image_url"),
-    rating: integer("rating"), // 평점 (x10 해서 저장 등 고려, 일단 정수)
+    rating: real("rating"), // 소수점 평점 지원
     reviewCount: integer("review_count").default(0),
-    lat: integer("lat"), // 좌표 (소수점 저장을 위해 number로 변환 필요할 수 있으나 SQLite는 dynamic type)
-    lng: integer("lng"),
+    tags: text("tags", { mode: "json" }), // JSON array
+    lat: real("lat"), // 좌표
+    lng: real("lng"),
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`),
 });
 

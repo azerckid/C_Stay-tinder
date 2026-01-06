@@ -6,7 +6,6 @@ export function LoginButton() {
     const handleGoogleLogin = async () => {
         await authClient.signIn.social({
             provider: "google",
-            callbackURL: "/auth/google/callback", // 명시적 콜백 URL (우리가 만든 라우트)
         });
     };
 
