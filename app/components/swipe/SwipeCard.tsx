@@ -6,12 +6,13 @@ import { Heart, X, Star, MapPin } from "lucide-react";
 interface SwipeCardProps {
     destination: Destination;
     onSwipe: (direction: "left" | "right" | "up") => void;
+    onClick?: () => void;
     isFront: boolean;
     index: number; // 스택 내 순서 (0: 맨 앞)
     dragX?: MotionValue<number>; // 앞 카드의 드래그 값 공유
 }
 
-export const SwipeCard: React.FC<SwipeCardProps> = ({ destination, onSwipe, isFront, index, dragX }) => {
+export const SwipeCard: React.FC<SwipeCardProps> = ({ destination, onSwipe, onClick, isFront, index, dragX }) => {
     // 내부 x, y 값 (isFront가 아닐 때는 0으로 고정)
     const x = dragX || useMotionValue(0);
     const y = useMotionValue(0);
@@ -63,6 +64,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({ destination, onSwipe, isFr
             drag={isFront ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={handleDragEnd}
+            onClick={() => isFront && onClick && onClick()}
             animate={controls}
             style={{
                 x: isFront ? x : 0,

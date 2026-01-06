@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from "react";
 import { AnimatePresence, useMotionValue } from "framer-motion";
 import { SwipeCard } from "./SwipeCard";
+import { DestinationDetail } from "./DestinationDetail";
 import type { Destination } from "~/lib/mock-data";
-import { Heart, X, RotateCcw } from "lucide-react";
+import { Heart, X, RotateCcw, Info } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
 interface SwipeStackProps {
@@ -12,6 +13,7 @@ interface SwipeStackProps {
 export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDestinations }) => {
     const [stack, setStack] = useState<Destination[]>(initialDestinations);
     const [history, setHistory] = useState<Destination[]>([]);
+    const [selectedDest, setSelectedDest] = useState<Destination | null>(null);
 
     // 앞 카드의 드래그 x 값을 MotionValue로 관리하여 배경 카드와 공유
     const dragX = useMotionValue(0);
@@ -40,6 +42,12 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
         }
     };
 
+    const handleOpenDetail = () => {
+        if (stack.length > 0) {
+            setSelectedDest(stack[0]);
+        }
+    };
+
     return (
         <div className="flex flex-col items-center justify-between w-full h-full max-w-md mx-auto relative group">
             {/* Card Stack Area - Fill up space */}
@@ -56,6 +64,7 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
                                 key={`${dest.id}-${stack.length}-${idx}`} // 루프 시 애니메이션 재트리거를 위해 키 조합 최적화
                                 destination={dest}
                                 onSwipe={handleSwipe}
+                                onClick={handleOpenDetail}
                                 isFront={realIndex === 0}
                                 index={realIndex}
                                 dragX={realIndex === 0 ? dragX : dragX}
@@ -66,7 +75,7 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
             </div>
 
             {/* Action Buttons - Floating Style as per Stitch */}
-            <div className="absolute bottom-8 flex items-center justify-center w-full gap-6 z-30 px-4">
+            <div className="absolute bottom-8 flex items-center justify-center w-full gap-5 z-30 px-4">
                 {/* Pass Button */}
                 <button
                     onClick={() => handleSwipe("left")}
@@ -75,13 +84,21 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
                     <X className="w-8 h-8" />
                 </button>
 
-                {/* Info or Undo Button */}
+                {/* Undo Button */}
                 <button
                     onClick={handleUndo}
                     className="flex items-center justify-center size-10 rounded-full bg-surface-dark/80 backdrop-blur shadow-md text-slate-400 hover:text-white transition-all active:scale-90 disabled:opacity-30"
                     disabled={history.length === 0}
                 >
                     <RotateCcw className="w-5 h-5" />
+                </button>
+
+                {/* Info Button */}
+                <button
+                    onClick={handleOpenDetail}
+                    className="flex items-center justify-center size-10 rounded-full bg-surface-dark/80 backdrop-blur shadow-md text-primary hover:scale-110 transition-all active:scale-90"
+                >
+                    <Info className="w-5 h-5 fill-current opacity-20" />
                 </button>
 
                 {/* Like Button */}
@@ -92,6 +109,16 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
                     <Heart className="w-8 h-8 fill-current" />
                 </button>
             </div>
+
+            {/* Destination Detail Overlay */}
+            {selectedDest && (
+                <DestinationDetail
+                    destination={selectedDest}
+                    isOpen={!!selectedDest}
+                    onClose={() => setSelectedDest(null)}
+                    onSwipe={handleSwipe}
+                />
+            )}
         </div>
     );
 };
