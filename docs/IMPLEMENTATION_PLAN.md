@@ -36,27 +36,27 @@ https://stitch.withgoogle.com/projects/16646836401658870756
 ### Phase 1: 디자인 시스템 및 UI 프로토타입 (현재 단계)
 
 #### 1.1 프로젝트 초기화 및 기본 설정
-- [ ] React Router v7 프로젝트 초기화 (Vite)
-- [ ] Tailwind CSS v4 설정 및 컬러 팔레트 구성 (stitch 기준)
-- [ ] shadcn/ui 설치 및 Nova 프리셋 적용
-- [ ] 폰트 설정 (Plus Jakarta Sans, Noto Sans KR)
-- [ ] Material Symbols 아이콘 설정
+- [x] React Router v7 프로젝트 초기화 (Vite)
+- [x] Tailwind CSS v4 설정 및 컬러 팔레트 구성 (stitch 기준)
+- [x] shadcn/ui 설치 및 Nova 프리셋 적용
+- [x] 폰트 설정 (Plus Jakarta Sans, Noto Sans KR)
+- [ ] Material Symbols 아이콘 설정 (현재 Lucide-react로 대체됨)
 
 #### 1.2 디자인 토큰 및 공통 컴포넌트
-- [ ] Tailwind 컬러 확장 설정 (`primary`, `background-dark`, `surface-dark` 등)
-- [ ] 공통 버튼 컴포넌트 (shadcn/ui 기반)
-- [ ] 공통 카드 컴포넌트
-- [ ] 하단 네비게이션 바 컴포넌트
-- [ ] 상단 앱 바 컴포넌트
+- [x] Tailwind 컬러 확장 설정 (`primary`, `background-dark`, `surface-dark` 등)
+- [x] 공통 버튼 컴포넌트 (shadcn/ui 기반)
+- [x] 공통 카드 컴포넌트 (`SwipeCard`)
+- [x] 하단 네비게이션 바 컴포넌트 (`home.tsx` 내 구현)
+- [x] 상단 앱 바 컴포넌트 (`home.tsx` 내 구현)
 
 #### 1.3 핵심 화면 구현 (순서대로)
-- [ ] **화면 1: 여행지 스와이프 선택 화면**
-  - Tinder 스타일 카드 컴포넌트 (`SwipeCard`)
-  - framer-motion 스와이프 인터랙션 구현
-  - 카드 스택 효과 (배경 카드들)
-  - 하단 액션 버튼 (Pass, Like, Super Like)
-  - 하단 네비게이션 바
-  - 상단 앱 바 (로고, 검색 버튼)
+- [x] **화면 1: 여행지 스와이프 선택 화면**
+  - [x] Tinder 스타일 카드 컴포넌트 (`SwipeCard`)
+  - [x] framer-motion 스와이프 인터랙션 구현
+  - [x] 카드 스택 효과 (배경 카드들)
+  - [x] 하단 액션 버튼 (Pass, Like)
+  - [x] 하단 네비게이션 바
+  - [x] 상단 앱 바 (로고, 설정 버튼)
 
 - [ ] **화면 2: 선택 여행지 상세 정보 화면**
   - Hero 이미지 섹션 (고정 높이, 그라데이션 오버레이)
