@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Travel Destination Swipe Selection</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                        "surface-dark": "#18282f",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'card-depth': '0 20px 40px -5px rgba(0, 0, 0, 0.3)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hide for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between px-6 pt-6 pb-2 shrink-0 z-20">
+<div class="flex items-center gap-2">
+<!-- App Logo / Icon -->
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-2xl">travel_explore</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">Discover</h1>
+</div>
+<button class="flex items-center justify-center size-10 rounded-full bg-surface-light dark:bg-surface-dark text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</header>
+<!-- Main Content: Swipe Area -->
+<main class="flex-1 flex flex-col items-center justify-center relative w-full max-w-md mx-auto px-4 py-4 min-h-0">
+<!-- Background Stack Effect (Simulating the next card) -->
+<div class="absolute w-[90%] h-[60%] top-[10%] bg-surface-light dark:bg-surface-dark rounded-3xl opacity-40 scale-95 translate-y-4 shadow-lg z-0"></div>
+<div class="absolute w-[95%] h-[65%] top-[5%] bg-surface-light dark:bg-surface-dark rounded-3xl opacity-60 scale-[0.98] translate-y-2 shadow-lg z-0"></div>
+<!-- Active Card -->
+<div class="relative w-full h-full max-h-[600px] flex flex-col rounded-3xl overflow-hidden shadow-card-depth z-10 group">
+<!-- Card Image Background -->
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Scenic view of red torii gates in Kyoto Japan" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA11XOGq8nUNXJOrY7169q4MlPK6OIWmnv89g0dUB5gfIuwxj9afz4QXxRW-SoYgQWbW1VtjXQ0zXiUHJ9Rw_DJj458LWpQVdOFeogtM1TL0Em5q-a_e0XV4x20STY66xCtMonUL2IkmMarhKg-qXiupu76fBjIxvkGz1rCbnZgwIpmEB0YAxgwnbq21Yyz1ztG4mwJbEnFhirOj7JWFRMM8gMllPNcjZ5GCU9T0awLr55CaJ4fWiu5h1ET9yU-QDXnPGIUaGu5rFNP");'>
+</div>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80"></div>
+<!-- Top Card Action Hints (Simulated UI for Swipe) -->
+<div class="absolute top-6 left-6 opacity-0 -rotate-12 border-4 border-rose-500 rounded-lg px-4 py-1 text-rose-500 font-bold text-2xl tracking-widest pointer-events-none">NOPE</div>
+<div class="absolute top-6 right-6 opacity-0 rotate-12 border-4 border-green-500 rounded-lg px-4 py-1 text-green-500 font-bold text-2xl tracking-widest pointer-events-none">LIKE</div>
+<!-- Card Content (Bottom) -->
+<div class="mt-auto p-6 relative z-20 flex flex-col gap-3">
+<!-- Chips -->
+<div class="flex flex-wrap gap-2 mb-1">
+<div class="flex items-center px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
+<span class="text-xs font-semibold text-white">#Historic</span>
+</div>
+<div class="flex items-center px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
+<span class="text-xs font-semibold text-white">#Nature</span>
+</div>
+</div>
+<!-- Title & Location -->
+<div>
+<h2 class="text-3xl font-extrabold text-white leading-tight drop-shadow-md">Kyoto</h2>
+<div class="flex items-center gap-1.5 mt-1 text-white/90">
+<span class="material-symbols-outlined text-[20px] text-primary">location_on</span>
+<span class="text-sm font-medium">Japan • 4.5km away</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons (Floating below card) -->
+<div class="absolute bottom-6 flex items-center justify-center w-full gap-6 z-30">
+<!-- Pass Button -->
+<button class="group flex items-center justify-center size-14 rounded-full bg-surface-light dark:bg-surface-dark shadow-lg border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-3xl">close</span>
+</button>
+<!-- Info Button (Small) -->
+<button class="flex items-center justify-center size-10 rounded-full bg-surface-light dark:bg-surface-dark/80 backdrop-blur shadow-md text-slate-400 hover:text-white hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-xl">info</span>
+</button>
+<!-- Like Button -->
+<button class="group flex items-center justify-center size-14 rounded-full bg-primary shadow-lg shadow-primary/40 text-white hover:bg-blue-400 hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-3xl fill-current">favorite</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="shrink-0 bg-surface-light dark:bg-[#152229] border-t border-slate-200 dark:border-slate-800 pb-safe pt-2">
+<div class="flex items-center justify-around px-2 pb-2">
+<!-- Active Tab -->
+<a class="flex flex-col items-center gap-1 p-2 min-w-[64px] text-primary" href="#">
+<span class="material-symbols-outlined text-[26px] font-variation-settings-fill">home</span>
+<span class="text-[10px] font-bold tracking-wide">Home</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex flex-col items-center gap-1 p-2 min-w-[64px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">favorite</span>
+<span class="text-[10px] font-medium tracking-wide">Saved</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 min-w-[64px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">map</span>
+<span class="text-[10px] font-medium tracking-wide">Itinerary</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 min-w-[64px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">person</span>
+<span class="text-[10px] font-medium tracking-wide">Profile</span>
+</a>
+</div>
+</nav>
+<!-- CSS for Google Material Symbols Fill Variation -->
+<style>
+        .material-symbols-outlined.font-variation-settings-fill {
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Safe area padding for iPhones without home button */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    </style>
+</body></html>

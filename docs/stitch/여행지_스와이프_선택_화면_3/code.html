@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Travel Destination Swipe Selection</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                        "surface-dark": "#182b34",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "3xl": "2.5rem", "full": "9999px" },
+                    boxShadow: {
+                        'glow': '0 0 20px -5px rgba(37, 175, 244, 0.3)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for swipe animation simulation if needed, though mostly static here */
+        .card-stack-effect {
+            transform: scale(0.95) translateY(10px);
+            opacity: 0.6;
+        }
+        
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased overflow-hidden h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="flex items-center justify-between px-6 pt-6 pb-2 shrink-0 z-10">
+<div class="flex items-center gap-2 text-slate-900 dark:text-white">
+<div class="flex items-center justify-center p-1.5 bg-primary rounded-lg text-white">
+<span class="material-symbols-outlined text-[20px]">flight_takeoff</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">TravelSwipe</h1>
+</div>
+<button class="flex items-center justify-center size-10 rounded-full bg-white/10 dark:bg-surface-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-slate-900 dark:text-white">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<!-- Main Content: Swipeable Card Stack -->
+<main class="flex-1 flex flex-col items-center justify-center relative w-full px-4 py-2">
+<!-- Background/Next Card (Stacked Effect) -->
+<div class="absolute w-[calc(100%-48px)] h-[calc(100%-120px)] top-8 bg-surface-dark rounded-3xl overflow-hidden card-stack-effect z-0">
+<div class="w-full h-full bg-cover bg-center opacity-40" data-alt="Scenic mountain landscape with snow" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDp7z_eYEYBcDOAg3sq5svUCN0gQDBgn8svez0hM3cOL4u-wCUk0fmWB9zRE9FWEsu3yN_xbG2W6ZcZKJYHSkW52rOywCBj1nA26DxknqY8w9eYYsLzwyfiFO1TytrxeAXGeYxfB7pN4fX1Rwm4wVzZ_GyhSRKB4pq0oS9tbpIsVWvDwaNqYqr50wAPEyABNKvlRVjFFmuxlVt_rAWZQzZMUYvJ9fGJspWnYnXZY0VFYR8sw4JcxccVNJ91V-u6Tuz-Ak5SGwD7IAJH");'>
+</div>
+</div>
+<!-- Active Card -->
+<div class="relative w-full h-full max-h-[620px] bg-surface-light dark:bg-surface-dark rounded-3xl overflow-hidden shadow-2xl shadow-black/20 z-10 group">
+<!-- Card Image -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-700 hover:scale-105" data-alt="Traditional Kyoto street with pagodas at sunset" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBSh0KlmxuTNk1v19g3ZcdEKFSI8LFNrmJL_Z1Imhv1jVTf3VsPt6kFSg2e1YYHKd_e5-Y0pftHMeM-WRnMyAU2kvtnDrLjyzyS285Xz4dV2rx9HpQWZTxsb778W8FYd8GLucCDS4hDOJqKbTPBTqR8nZvWLvUW3P9SOfYfKZ7A5GB9IFoUVP0t0i6BiXCU7XVRQ7tMzv_TXsZnbWRcnhV1Q2B-aYPQMgM2KtNq0ieMPW5ftxWC79BGYGJbOQ8i0nX_-_IvvO_0RI93");'>
+</div>
+<!-- Gradient Overlay for Readability -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80"></div>
+<!-- Swipe Hints (Arrows) -->
+<div class="absolute inset-y-0 left-0 w-12 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+<div class="bg-black/20 backdrop-blur-sm p-1 rounded-full text-white/70">
+<span class="material-symbols-outlined text-3xl">chevron_left</span>
+</div>
+</div>
+<div class="absolute inset-y-0 right-0 w-12 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+<div class="bg-black/20 backdrop-blur-sm p-1 rounded-full text-white/70">
+<span class="material-symbols-outlined text-3xl">chevron_right</span>
+</div>
+</div>
+<!-- Card Content Overlay -->
+<div class="absolute bottom-0 left-0 right-0 p-6 flex flex-col gap-3">
+<!-- Location & Rating Header -->
+<div class="flex items-end justify-between">
+<div>
+<h2 class="text-white text-3xl font-bold leading-tight drop-shadow-md">Kyoto, Japan</h2>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-yellow-400 text-[20px] filled icon-filled">star</span>
+<span class="text-white font-semibold text-lg drop-shadow-sm">4.8</span>
+<span class="text-white/80 text-sm ml-1 drop-shadow-sm">(2.1k reviews)</span>
+</div>
+</div>
+<!-- Info Icon Button -->
+<button class="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<!-- Tags / Features -->
+<div class="flex flex-wrap gap-2 mt-1">
+<div class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-white text-[16px]">temple_buddhist</span>
+<span class="text-white text-xs font-semibold tracking-wide">Historic Temples</span>
+</div>
+<div class="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-white text-[16px]">public</span>
+<span class="text-white text-xs font-semibold tracking-wide">UNESCO World Heritage</span>
+</div>
+</div>
+<!-- Swipe Hint Text (Subtle) -->
+<div class="flex justify-between w-full mt-2 px-2 opacity-60">
+<span class="text-[10px] uppercase font-bold tracking-widest text-red-300">Pass</span>
+<span class="text-[10px] uppercase font-bold tracking-widest text-primary">Like</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons (Below Card) -->
+<div class="flex items-center justify-center gap-8 mt-6 mb-2 shrink-0 w-full max-w-xs mx-auto">
+<!-- Pass Button -->
+<button class="group flex items-center justify-center size-16 rounded-full bg-white dark:bg-surface-dark shadow-lg border border-slate-100 dark:border-slate-700 hover:scale-110 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined text-4xl text-rose-500 group-hover:text-rose-600">close</span>
+</button>
+<!-- Super Like (Optional small middle button) -->
+<button class="group flex items-center justify-center size-12 rounded-full bg-white dark:bg-surface-dark shadow-md border border-slate-100 dark:border-slate-700 hover:scale-110 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined text-2xl text-amber-500">star</span>
+</button>
+<!-- Like Button -->
+<button class="group flex items-center justify-center size-16 rounded-full bg-primary shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined text-4xl text-white font-variation-settings-fill">favorite</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="shrink-0 bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 pb-safe pt-2">
+<div class="flex items-center justify-around px-2 pb-4 pt-1">
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<div class="relative p-1">
+<span class="material-symbols-outlined text-primary text-[28px]">explore</span>
+<span class="absolute top-1 right-1 size-2 bg-primary rounded-full animate-pulse"></span>
+</div>
+<span class="text-[10px] font-bold text-primary tracking-wide">Explore</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<div class="relative p-1">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors text-[28px]">map</span>
+</div>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors tracking-wide">My Route</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<div class="relative p-1">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors text-[28px]">chat_bubble</span>
+</div>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors tracking-wide">Chat</span>
+</a>
+<a class="flex flex-col items-center gap-1 w-16 group" href="#">
+<div class="relative p-1">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors text-[28px]">person</span>
+</div>
+<span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-primary transition-colors tracking-wide">Profile</span>
+</a>
+</div>
+</nav>
+<style>
+        /* Helper for filled icons in Material Symbols */
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+        .material-symbols-outlined.icon-filled, 
+        .font-variation-settings-fill .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Safe area padding for iPhones */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+    </style>
+</body></html>

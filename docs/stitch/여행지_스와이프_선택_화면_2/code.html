@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Travel Destination Swipe</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101d23",
+                        "surface-dark": "#182b34",
+                        "text-secondary": "#90b7cb",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem", 
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="flex items-center justify-between px-5 py-4 shrink-0 z-20">
+<div class="flex items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">travel_explore</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">TravelSwipe</h1>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-dark text-white hover:bg-surface-dark/80 transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<!-- Main Content: Swipe Area -->
+<main class="flex-1 relative flex flex-col items-center justify-center w-full max-w-md mx-auto px-4 pb-2">
+<!-- Card Stack Container -->
+<div class="relative w-full h-full max-h-[600px] flex flex-col justify-end">
+<!-- Background Card (Simulating stack depth) -->
+<div class="absolute top-4 left-4 right-4 bottom-4 bg-surface-dark rounded-3xl opacity-40 scale-95 translate-y-4 shadow-xl -z-10"></div>
+<div class="absolute top-2 left-2 right-2 bottom-2 bg-surface-dark rounded-3xl opacity-70 scale-[0.98] translate-y-2 shadow-xl -z-10"></div>
+<!-- Active Card -->
+<div class="relative w-full h-full bg-gray-800 rounded-3xl overflow-hidden shadow-2xl group select-none">
+<!-- Main Image -->
+<div class="absolute inset-0 w-full h-full">
+<img alt="Sunset view of white buildings in Santorini, Greece overlooking the sea" class="w-full h-full object-cover" data-location="Santorini, Greece" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIjukmzl2Pjbt9_x3zLswNWnEYU3wzAbyP8srXtoW_2sUPS-qNuPYJP-5RYlPHI3oRKkwamBLqYXMTL3AFidSSaIEqD0qRtcA9-2pz6_uVzfdFtQOoiyxgdrEGjTqQooUZdHjkcF6YgIaIMdibKGISetTQ6R97GiQboDXBz_jNmRk8qfcmHyJl9-FzBPkY4I9s41F-VxcEyY_XzJoau_TcQtBD8AiVOYPP5Q_1_VDYu7jfjL62J2itU2wtquaQV6PcXvqud4Mo4Gxj"/>
+</div>
+<!-- Gradient Overlay for Text Readability -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-6">
+<!-- Location Label -->
+<div class="flex items-center gap-1.5 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px] fill-1">location_on</span>
+<span class="text-primary font-bold tracking-wide uppercase text-xs">Greece</span>
+</div>
+<!-- Title -->
+<h2 class="text-4xl font-extrabold leading-tight mb-2">Santorini</h2>
+<!-- Tagline -->
+<p class="text-gray-200 text-base font-medium leading-relaxed line-clamp-2 mb-4">
+                        The gem of the Aegean Sea. Perfect for romance and breathtaking sunsets.
+                    </p>
+<!-- Details Button (Inside Card) -->
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold">Islands</span>
+<span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold">Luxury</span>
+</div>
+<button class="flex items-center gap-1 text-sm font-bold text-white bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-full transition">
+<span>Details</span>
+<span class="material-symbols-outlined text-[18px]">info</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons (Floating below card) -->
+<div class="w-full flex items-center justify-center gap-8 py-6 z-20">
+<!-- Pass Button -->
+<button class="flex items-center justify-center w-16 h-16 rounded-full bg-surface-dark border border-white/10 shadow-lg text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-300 group">
+<span class="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">close</span>
+</button>
+<!-- Super Like / Save (Small) -->
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-surface-dark border border-white/10 shadow-lg text-yellow-400 hover:bg-yellow-400 hover:text-black hover:border-yellow-400 transition-all duration-300 group">
+<span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">star</span>
+</button>
+<!-- Like Button -->
+<button class="flex items-center justify-center w-16 h-16 rounded-full bg-primary shadow-[0_0_20px_rgba(37,175,244,0.4)] text-white hover:bg-primary/90 hover:scale-105 transition-all duration-300 group">
+<span class="material-symbols-outlined text-3xl fill-1 group-hover:scale-110 transition-transform">favorite</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="shrink-0 bg-surface-dark border-t border-white/5 pb-5 pt-3 px-6">
+<ul class="flex items-center justify-between">
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-primary group" href="#">
+<span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform fill-1">style</span>
+<span class="text-[10px] font-bold tracking-wide">Discover</span>
+</a>
+</li>
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-text-secondary hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">map</span>
+<span class="text-[10px] font-medium tracking-wide">Route</span>
+</a>
+</li>
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-text-secondary hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">favorite</span>
+<span class="text-[10px] font-medium tracking-wide">Saved</span>
+</a>
+</li>
+<li class="flex-1">
+<a class="flex flex-col items-center gap-1 text-text-secondary hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">person</span>
+<span class="text-[10px] font-medium tracking-wide">Profile</span>
+</a>
+</li>
+</ul>
+</nav>
+</body></html>

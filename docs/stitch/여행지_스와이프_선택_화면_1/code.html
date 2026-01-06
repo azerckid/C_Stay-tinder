@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TravelSwipe - Destination Selection</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                        "card-dark": "#182b34",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom utilities for smooth hiding of scrollbars if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-hidden h-screen w-full select-none">
+<div class="relative flex h-full w-full flex-col justify-between max-w-md mx-auto md:max-w-full md:px-0">
+<!-- Top App Bar -->
+<header class="flex items-center justify-between px-5 pt-6 pb-2 z-30 bg-background-light dark:bg-background-dark">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined filled">travel_explore</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">TravelSwipe</h2>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<!-- Main Content: Swipeable Card Area -->
+<main class="flex-1 relative flex flex-col items-center justify-center w-full px-4 py-4 md:py-6 overflow-hidden">
+<!-- Background Stack Effect (Visual depth) -->
+<!-- Third Card (Furthest back) -->
+<div class="absolute w-[85%] h-[60%] bg-card-dark/40 rounded-3xl top-[12%] scale-[0.85] opacity-40 blur-[1px]"></div>
+<!-- Second Card (Behind active) -->
+<div class="absolute w-[90%] h-[70%] bg-card-dark/60 rounded-3xl top-[8%] scale-[0.92] opacity-70 translate-y-4"></div>
+<!-- Active Main Card -->
+<div class="relative w-full h-full max-h-[700px] md:max-w-md bg-card-dark rounded-3xl overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] group z-10">
+<!-- Card Image -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105" data-alt="Scenic panorama of Santorini Greece with white buildings and blue sea at sunset" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB8YHGaZFhIgSCHAMRG7kklt2xhGYyRHTHrd3sCQ5rV2JKx5xNCglXFVZoiFO2LNRWLXjvPgH2iK4sOtPy3fMeTc1oMgV1EeXi8WUiS9GC_gUA9Kv2tsfkJecl5YzsWg7nCv0-LScjypmu68FriXiC-0btK8XegZRW2A3TmxAJxuzhrHguYQ4LEFjjYHNrDmCSfPzdlOzjMkw9mAtD3hxlxpXinovf2ENdfXAvmtDdEdHMwiKE1ITE7QXYsZrpj1_XJ8j_an47dqliZ');">
+</div>
+<!-- Gradient Overlay for Readability -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/90"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark/95 via-background-dark/30 to-transparent opacity-90"></div>
+<!-- Like/Dislike Overlay Indicators (Hidden by default, concept for swipe UI) -->
+<div class="absolute top-8 left-6 opacity-0 -rotate-12 border-4 border-green-400 rounded-lg px-4 py-1 text-green-400 font-bold text-2xl uppercase tracking-widest pointer-events-none">Like</div>
+<div class="absolute top-8 right-6 opacity-0 rotate-12 border-4 border-red-500 rounded-lg px-4 py-1 text-red-500 font-bold text-2xl uppercase tracking-widest pointer-events-none">Nope</div>
+<!-- Card Content -->
+<div class="absolute bottom-0 left-0 right-0 p-6 pb-8 flex flex-col items-start gap-4">
+<!-- Destination Tags -->
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-white tracking-wide border border-white/10">
+<span class="material-symbols-outlined text-[14px]">flight_takeoff</span>
+                            Popular
+                        </span>
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-xs font-semibold text-white tracking-wide border border-white/10">
+<span class="material-symbols-outlined text-[14px] filled text-primary">star</span>
+                            4.9
+                        </span>
+</div>
+<!-- Title & Location -->
+<div class="w-full">
+<h1 class="text-4xl font-extrabold text-white leading-tight mb-1 drop-shadow-sm">Santorini</h1>
+<div class="flex items-center gap-1 text-gray-300">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span class="text-base font-medium">Cyclades, Greece</span>
+</div>
+</div>
+<!-- Action Area -->
+<div class="w-full flex items-center gap-3 mt-2">
+<!-- Dislike Button -->
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-card-dark/80 text-white hover:bg-red-500/20 hover:text-red-500 border border-white/10 transition-all duration-300 backdrop-blur-sm">
+<span class="material-symbols-outlined text-[28px]">close</span>
+</button>
+<!-- Explore Button (Primary Action) -->
+<button class="flex-1 h-12 bg-primary hover:bg-primary/90 active:scale-95 text-background-dark font-bold text-base rounded-2xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(37,175,244,0.3)]">
+<span>EXPLORE</span>
+</button>
+<!-- Like Button -->
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-card-dark/80 text-white hover:bg-green-500/20 hover:text-green-500 border border-white/10 transition-all duration-300 backdrop-blur-sm">
+<span class="material-symbols-outlined text-[28px] filled">favorite</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-white/5 pb-6 pt-2 px-6 z-30">
+<div class="flex items-center justify-between max-w-md mx-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<span class="material-symbols-outlined filled text-[26px]">home</span>
+<span class="text-[10px] font-bold">Discover</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-gray-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">favorite</span>
+<span class="text-[10px] font-medium">Saved</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-gray-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">map</span>
+<span class="text-[10px] font-medium">Trips</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-gray-400 dark:text-slate-500 hover:text-primary dark:hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

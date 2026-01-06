@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recommended Route</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#25aff4",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                        "surface-dark": "#182830",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar for hidden scroll feel */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(16, 28, 34, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased text-slate-900 dark:text-white overflow-hidden">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- Top Navigation (Transparent Overlay) -->
+<div class="absolute top-0 left-0 right-0 z-30 pt-12 pb-4 px-4 flex items-center justify-between pointer-events-none">
+<button class="pointer-events-auto flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<div class="pointer-events-auto flex items-center gap-3">
+<button class="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+</button>
+</div>
+</div>
+<!-- Map Section -->
+<div class="relative h-[45vh] w-full shrink-0">
+<!-- Map Background -->
+<div class="w-full h-full bg-gray-800 relative overflow-hidden">
+<img class="w-full h-full object-cover opacity-60" data-alt="Dark styled map of a coastal city with streets and ocean" data-location="Busan, South Korea" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDAvu6hbPwjvSRkrrAbJBYAEjZLjsiAZHe22N77cxX_aU1HZejp9lRVZJQPg4o5hIunJQyfbzgmdtQzm8prtrylDx5t-tZI56cPrgEvZHguJdPv-AtBAhtoywt8pN5Xn0pVJTK5-crQwG6RRTy5tO9HneD0G-RzPJJ3DPjDOElMNmWgELjCLM4bK-BpHhhesI3kyoxJe26eda6HeyqutEAhOlPAhErnoiHJ_5rykDW6OPX3uPpOomdBki-KDChO-h1tPFCD9GFP5Yd"/>
+<!-- Map Overlay Gradient -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background-dark"></div>
+<!-- Simulated Route SVG -->
+<svg class="absolute inset-0 h-full w-full pointer-events-none" style="z-index: 10;">
+<!-- Path shadow -->
+<path d="M120,150 Q180,200 220,280 T300,350" fill="none" stroke="black" stroke-linecap="round" stroke-opacity="0.5" stroke-width="6"></path>
+<!-- Actual Path -->
+<path d="M120,150 Q180,200 220,280 T300,350" fill="none" stroke="#25aff4" stroke-dasharray="8 4" stroke-linecap="round" stroke-width="4"></path>
+<!-- Pulsing Current Location Effect at Start -->
+<circle cx="120" cy="150" fill="#25aff4" r="8">
+<animate attributename="r" dur="2s" repeatcount="indefinite" values="8;12;8"></animate>
+<animate attributename="opacity" dur="2s" repeatcount="indefinite" values="1;0.5;1"></animate>
+</circle>
+</svg>
+<!-- Map Markers -->
+<div class="absolute top-[130px] left-[100px] z-20 flex flex-col items-center">
+<div class="bg-primary text-white text-xs font-bold px-2 py-1 rounded-lg mb-1 shadow-lg whitespace-nowrap">출발: 해운대</div>
+<div class="size-4 bg-white border-4 border-primary rounded-full shadow-lg"></div>
+</div>
+<div class="absolute top-[330px] left-[280px] z-20 flex flex-col items-center">
+<div class="bg-surface-dark text-white text-xs font-bold px-2 py-1 rounded-lg mb-1 shadow-lg border border-gray-700 whitespace-nowrap">청사포</div>
+<div class="size-4 bg-white border-4 border-gray-500 rounded-full shadow-lg"></div>
+</div>
+</div>
+</div>
+<!-- Bottom Sheet / Route List -->
+<div class="flex-1 -mt-6 relative z-20 bg-background-light dark:bg-background-dark rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden">
+<!-- Handle -->
+<div class="w-full flex justify-center pt-3 pb-1">
+<div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+</div>
+<!-- Header Info -->
+<div class="px-6 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">여행 요약</h2>
+<div class="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-md font-medium">
+<span class="material-symbols-outlined text-[16px]">place</span> 3곳
+                    </span>
+<span>•</span>
+<span>총 4시간 30분</span>
+<span>•</span>
+<span>12km</span>
+</div>
+</div>
+<!-- Timeline List -->
+<div class="flex-1 overflow-y-auto hide-scrollbar p-6">
+<div class="relative pl-4 border-l-2 border-dashed border-gray-300 dark:border-gray-800 space-y-8">
+<!-- Item 1 -->
+<div class="relative">
+<!-- Timeline Dot -->
+<div class="absolute -left-[25px] top-0 size-5 bg-primary rounded-full border-4 border-white dark:border-background-dark shadow-sm z-10"></div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">해운대 해수욕장</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">오전 10:00 - 12:00</p>
+</div>
+<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs px-2 py-1 rounded-md font-semibold">해변</span>
+</div>
+<!-- Card Content -->
+<div class="flex gap-4 p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="size-16 shrink-0 rounded-lg bg-gray-200 overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="Sunny sandy beach with blue ocean waves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq85p4Dtr7L3BrqE89Hp72b5rBH3iuKmDGcQllm2FHfpXKgWvN_W_zu-jB_FkBr2QEl7ykPRgVm-EcMo5sfmhZIPSKt_UuUQ-W80udOJARyKCmw-rTAaICbBZGfhNQGSK0-uvh5gu2T3SWEcSXrqyi9qRPH5YB5WMAZxfwDyFBypzmgvfuJimpRsqb5ukI6HKrx5Y0agUKLzCUMnEOCKkln8NVnYtWkI-1fmeVTlW_nmr0XEQtlivJSzy_uJxxqlCJI1onpWtfsCzd"/>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">부산의 대표적인 해수욕장으로, 아름다운 백사장과 현대적인 건물이 어우러진 곳입니다.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Transport Connector -->
+<div class="relative py-2 pl-4">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+<span class="material-symbols-outlined text-[14px]">directions_car</span>
+                            차량 15분 이동
+                        </div>
+</div>
+<!-- Item 2 -->
+<div class="relative">
+<!-- Timeline Dot -->
+<div class="absolute -left-[25px] top-0 size-5 bg-gray-400 dark:bg-gray-600 rounded-full border-4 border-white dark:border-background-dark shadow-sm z-10"></div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">블루라인파크</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">오후 12:30 - 14:00</p>
+</div>
+<span class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs px-2 py-1 rounded-md font-semibold">액티비티</span>
+</div>
+<div class="flex gap-4 p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="size-16 shrink-0 rounded-lg bg-gray-200 overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="Colorful sky capsule train running along the coast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIy77vKDEXY_Yg_4CUmF97Cu-lwxxWifjzt8N1cUtCk-uHXTIXvIptqw6mOk2wRoNUJaI0yLS3T8dYTHtQqdvtbLA-1IFk0Tp0JSOKNoEq5rphIRqqNcQlXiOxpw2Zw9JCcABPeUxY0KtUeQvID-kzDwpVQnCAB_rVJ9aF6ZE5_Wu49ntYj1lmR3Y0TMITAB7BdiepYdi-FykHg13RC_pDB6H3VuruFYvhZnvjFjEduLJWL03dAnS_ue_FrOAp2bUwPKxLsNl5HGy1"/>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">해안 절경을 따라 달리는 낭만적인 해변 열차 체험.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Transport Connector -->
+<div class="relative py-2 pl-4">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+<span class="material-symbols-outlined text-[14px]">directions_walk</span>
+                            도보 10분 이동
+                        </div>
+</div>
+<!-- Item 3 -->
+<div class="relative">
+<!-- Timeline Dot -->
+<div class="absolute -left-[25px] top-0 size-5 bg-gray-400 dark:bg-gray-600 rounded-full border-4 border-white dark:border-background-dark shadow-sm z-10"></div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">청사포 다릿돌전망대</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">오후 14:10 - 15:30</p>
+</div>
+<span class="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs px-2 py-1 rounded-md font-semibold">관광명소</span>
+</div>
+</div>
+</div>
+<!-- End Spacer -->
+<div class="h-10"></div>
+</div>
+</div>
+<!-- Bottom Action Bar -->
+<div class="p-4 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">navigation</span>
+                    동선 따라 시작하기
+                </button>
+</div>
+</div>
+</div>
+</body></html>
