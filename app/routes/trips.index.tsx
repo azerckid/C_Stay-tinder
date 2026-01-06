@@ -4,7 +4,13 @@ import { db } from "~/db";
 import { trips, tripItems, places } from "~/db/schema";
 import { auth } from "~/lib/auth";
 import { eq, desc, sql, and } from "drizzle-orm";
-import { ArrowLeft, Calendar, MapPin, ChevronRight, Plane, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, ChevronRight, Plane, Trash2, MoreVertical } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 export async function action({ request }: ActionFunctionArgs) {
     if (request.method !== "DELETE") {
@@ -143,14 +149,24 @@ export default function TripsIndexPage() {
                                     <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-white transition-colors ml-auto" />
                                 </Link>
 
-                                {/* Delete Button (Absolute Position) */}
-                                <button
-                                    onClick={(e) => handleDelete(e, trip.id)}
-                                    className="absolute top-4 right-4 p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors z-10"
-                                    title="여행 삭제"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
+                                {/* More Options Menu */}
+                                <div className="absolute top-4 right-2 z-10">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger className="p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition-colors active:scale-90 outline-none">
+                                            <MoreVertical className="w-5 h-5" />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-32 bg-[#1a262e] border border-white/10 text-white rounded-xl shadow-2xl p-1.5 overflow-hidden">
+                                            <DropdownMenuItem
+                                                onClick={(e) => handleDelete(e, trip.id)}
+                                                variant="destructive"
+                                                className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer flex items-center gap-2.5 p-2 rounded-lg transition-colors font-medium outline-none"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                <span>삭제하기</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             </div>
                         ))}
                     </div>

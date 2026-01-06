@@ -6,86 +6,84 @@ interface PolylineProps {
     strokeColor?: string;
     strokeOpacity?: number;
     strokeWeight?: number;
+    showGlow?: boolean;
 }
 
+/**
+ * Enhanced Polyline with "Halo/Glow" effect for better visibility on complex maps.
+ * Renders a background line (outer border) and a foreground line.
+ */
 export function Polyline({
     path,
-    strokeColor = "#25aff4", // Primary color from design system
+    strokeColor = "#25aff4", // Primary color (Stitch blue)
     strokeOpacity = 1.0,
-    strokeWeight = 4,
+    strokeWeight = 5,
+    showGlow = true,
 }: PolylineProps) {
     const map = useMap();
-    const [polyline, setPolyline] = useState<google.maps.Polyline | null>(null);
+    const [mainLine, setMainLine] = useState<google.maps.Polyline | null>(null);
+    const [glowLine, setGlowLine] = useState<google.maps.Polyline | null>(null);
 
-    // Initialize Polyline
+    // Initialize Polylines
     useEffect(() => {
         if (!map || !path || path.length === 0) return;
 
-        // Google Maps Polyline with Dashed Line (using SVG Path)
-        // 'M 0,-1 0,1' creates a simple line segment, avoiding SymbolPath constants dependence
-        const lineSymbol = {
-            path: 'M 0,-1 0,1',
-            strokeOpacity: 1,
-            scale: 4,
-        };
-
-        const newPolyline = new google.maps.Polyline({
+        // 1. Dark Glow/Background Line (더 뚜렷한 가독성 확보)
+        const newGlowLine = new google.maps.Polyline({
             path,
             clickable: false,
             geodesic: true,
-            strokeColor,
-            strokeOpacity: 0, // Main line is transparent
-            strokeWeight: 0,
-            icons: [
-                {
-                    icon: lineSymbol,
-                    offset: "0",
-                    repeat: "20px", // Gap between dashes
-                },
-            ],
+            strokeColor: "#0f172a", // Dark Slate (배경 지도와 대비되는 진한 색)
+            strokeOpacity: 0.4,
+            strokeWeight: strokeWeight + 4, // 외곽선을 충분히 굵게
+            zIndex: 1,
         });
 
-        newPolyline.setMap(map);
-        setPolyline(newPolyline);
+        // 2. Neon Primary Foreground Line
+        const newMainLine = new google.maps.Polyline({
+            path,
+            clickable: false,
+            geodesic: true,
+            strokeColor: "#3b82f6", // 밝고 선명한 Blue
+            strokeOpacity: 1.0,
+            strokeWeight: strokeWeight + 1, // 메인 선도 굵게
+            zIndex: 2,
+        });
+
+        if (showGlow) newGlowLine.setMap(map);
+        newMainLine.setMap(map);
+
+        setMainLine(newMainLine);
+        setGlowLine(newGlowLine);
 
         return () => {
-            if (newPolyline) {
-                newPolyline.setMap(null);
-            }
+            newMainLine.setMap(null);
+            newGlowLine.setMap(null);
         };
-    }, [map, strokeColor]); // path는 별도 useEffect에서 처리
+    }, [map, showGlow]);
 
-    // Update path when it changes
+    // Update path for both lines when it changes
     useEffect(() => {
-        if (!polyline || !path || path.length === 0) return;
+        if (!path || path.length === 0) return;
+        if (mainLine) mainLine.setPath(path);
+        if (glowLine) glowLine.setPath(path);
+    }, [mainLine, glowLine, path]);
 
-        polyline.setPath(path);
-    }, [polyline, path]);
-
-    // Update stroke options when they change
+    // Update colors and options
     useEffect(() => {
-        if (!polyline) return;
-
-        // Use the same line symbol as initialization
-        const lineSymbol = {
-            path: 'M 0,-1 0,1',
-            strokeOpacity: 1,
-            scale: 4,
-        };
-
-        polyline.setOptions({
+        if (!mainLine) return;
+        mainLine.setOptions({
             strokeColor,
-            strokeOpacity: 0, // Main line transparent
-            strokeWeight: 0,
-            icons: [
-                {
-                    icon: lineSymbol,
-                    offset: "0",
-                    repeat: "20px",
-                },
-            ],
+            strokeWeight,
+            strokeOpacity
         });
-    }, [polyline, strokeColor]);
+
+        if (glowLine) {
+            glowLine.setOptions({
+                strokeWeight: strokeWeight + 3
+            });
+        }
+    }, [mainLine, glowLine, strokeColor, strokeWeight, strokeOpacity]);
 
     return null;
 }

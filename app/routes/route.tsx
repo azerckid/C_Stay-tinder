@@ -1,6 +1,12 @@
 import type { Route } from "./+types/route";
 import { useNavigate, Link, useLocation, useLoaderData, useFetcher } from "react-router";
-import { ArrowLeft, Edit, Bookmark, Navigation, Car, MapPin, Clock, User, Home as HomeIcon, Heart, Map as MapIcon, X } from "lucide-react";
+import { ArrowLeft, Edit, Bookmark, Navigation, Car, MapPin, Clock, User, Home as HomeIcon, Heart, Map as MapIcon, X, MoreVertical, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { motion } from "framer-motion";
 import { db } from "~/db";
@@ -332,15 +338,6 @@ export default function RoutePage() {
                   transition={{ delay: index * 0.1 }}
                   className="relative group/card"
                 >
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => handleRemovePlace(dest.id)}
-                    className="absolute right-0 top-0 p-2 text-slate-500 hover:text-red-500 active:bg-red-500/10 rounded-full transition-colors z-20"
-                    title="경로에서 제외"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-
                   {/* Timeline Dot */}
                   <div
                     className={`absolute -left-[25px] top-0 size-5 rounded-full border-4 border-background-dark shadow-sm z-10 ${isFirst ? "bg-primary" : "bg-gray-600"
@@ -355,13 +352,31 @@ export default function RoutePage() {
                           {timeSlot.start} - {timeSlot.end}
                         </p>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-md font-semibold ${getCategoryColor(
-                          categoryTag
-                        )}`}
-                      >
-                        {categoryTag.replace("#", "")}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-md font-semibold ${getCategoryColor(
+                            categoryTag
+                          )}`}
+                        >
+                          {categoryTag.replace("#", "")}
+                        </span>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="p-1.5 text-slate-500 hover:text-white hover:bg-white/10 rounded-full transition-colors active:scale-90 outline-none">
+                            <MoreVertical className="w-4 h-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32 bg-[#1a262e] border border-white/10 text-white rounded-xl shadow-2xl p-1.5 z-50">
+                            <DropdownMenuItem
+                              onClick={() => handleRemovePlace(dest.id)}
+                              variant="destructive"
+                              className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer flex items-center gap-2.5 p-2 rounded-lg transition-colors font-medium outline-none"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span>삭제하기</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
 
                     {/* Card Content */}
