@@ -1,7 +1,9 @@
 import type { Route } from "./+types/home";
+import { Link, useLocation } from "react-router";
 import { SwipeStack } from "~/components/swipe/SwipeStack";
 import { MOCK_DESTINATIONS } from "~/lib/mock-data";
 import { User, Home as HomeIcon, Heart, Map as MapIcon, Settings2, Compass } from "lucide-react";
+import { useSelectedDestinations } from "~/lib/contexts/SelectedDestinationsContext";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -11,6 +13,10 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const location = useLocation();
+  const { selectedDestinations } = useSelectedDestinations();
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <div className="bg-background-dark text-white font-sans overflow-hidden h-screen flex flex-col">
       {/* Top Navigation - Immersive Floating Overlay */}
@@ -35,27 +41,54 @@ export default function Home() {
       {/* Bottom Navigation Bar - Stitch Themed */}
       <nav className="shrink-0 bg-[#0d161b]/95 backdrop-blur-md border-t border-white/5 pb-[env(safe-area-inset-bottom,20px)] pt-3 z-40">
         <div className="flex items-center justify-around px-4 pb-2">
-          {/* Active Tab */}
-          <a className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-primary group" href="#">
+          {/* Home Tab */}
+          <Link
+            to="/"
+            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group ${
+              isActive("/") ? "text-primary" : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
             <div className="relative">
               <HomeIcon className="w-6 h-6 transition-transform group-active:scale-90" />
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+              {isActive("/") && (
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+              )}
             </div>
-            <span className="text-[10px] font-bold tracking-wide">Home</span>
-          </a>
-          {/* Inactive Tabs */}
-          <a className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-slate-500 hover:text-slate-300 transition-all group" href="#">
+            <span className={`text-[10px] tracking-wide ${isActive("/") ? "font-bold" : "font-medium"}`}>
+              Home
+            </span>
+          </Link>
+          {/* Saved Tab */}
+          <Link
+            to="/"
+            className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-slate-500 hover:text-slate-300 transition-all group"
+          >
             <Heart className="w-6 h-6 transition-transform group-active:scale-90" />
             <span className="text-[10px] font-medium tracking-wide">Saved</span>
-          </a>
-          <a className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-slate-500 hover:text-slate-300 transition-all group" href="#">
+          </Link>
+          {/* Itinerary Tab */}
+          <Link
+            to="/route"
+            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group relative ${
+              isActive("/route") ? "text-primary" : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
             <MapIcon className="w-6 h-6 transition-transform group-active:scale-90" />
-            <span className="text-[10px] font-medium tracking-wide">Itinerary</span>
-          </a>
-          <a className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-slate-500 hover:text-slate-300 transition-all group" href="#">
+            {selectedDestinations.length > 0 && (
+              <div className="absolute top-0 right-0 size-2 bg-primary rounded-full" />
+            )}
+            <span className={`text-[10px] tracking-wide ${isActive("/route") ? "font-bold" : "font-medium"}`}>
+              Itinerary
+            </span>
+          </Link>
+          {/* Profile Tab */}
+          <Link
+            to="/"
+            className="flex flex-col items-center gap-1.5 p-2 min-w-[64px] text-slate-500 hover:text-slate-300 transition-all group"
+          >
             <User className="w-6 h-6 transition-transform group-active:scale-90" />
             <span className="text-[10px] font-medium tracking-wide">Profile</span>
-          </a>
+          </Link>
         </div>
       </nav>
     </div>

@@ -1,16 +1,20 @@
 import React, { useState, useCallback } from "react";
 import { AnimatePresence, useMotionValue } from "framer-motion";
+import { useNavigate } from "react-router";
 import { SwipeCard } from "./SwipeCard";
 import { DestinationDetail } from "./DestinationDetail";
 import type { Destination } from "~/lib/mock-data";
 import { Heart, X, RotateCcw, Info } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { useSelectedDestinations } from "~/lib/contexts/SelectedDestinationsContext";
 
 interface SwipeStackProps {
     destinations: Destination[];
 }
 
 export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDestinations }) => {
+    const navigate = useNavigate();
+    const { addDestination, removeDestination } = useSelectedDestinations();
     const [stack, setStack] = useState<Destination[]>(initialDestinations);
     const [history, setHistory] = useState<Destination[]>([]);
     const [selectedDest, setSelectedDest] = useState<Destination | null>(null);
@@ -24,6 +28,13 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
         const [current, ...remaining] = stack;
         setHistory(prev => [current, ...prev]);
 
+        // Context에 선택/제거 반영
+        if (direction === "right") {
+            addDestination(current);
+        } else if (direction === "left") {
+            removeDestination(current.id);
+        }
+
         // 마지막 카드를 넘기면 다시 처음부터 스택을 채움 (무한 루프)
         if (remaining.length === 0) {
             setStack(initialDestinations);
@@ -32,7 +43,7 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
         }
 
         dragX.set(0);
-    }, [stack, dragX, initialDestinations]);
+    }, [stack, dragX, initialDestinations, addDestination, removeDestination]);
 
     const handleUndo = () => {
         if (history.length > 0) {
@@ -44,7 +55,8 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
 
     const handleOpenDetail = () => {
         if (stack.length > 0) {
-            setSelectedDest(stack[0]);
+            // 라우트로 이동하도록 변경
+            navigate(`/destination/${stack[0].id}`);
         }
     };
 

@@ -1,8 +1,10 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router";
 import { X, MapPin, Star, Heart, Share2, Navigation, Clock } from "lucide-react";
 import type { Destination } from "~/lib/mock-data";
 import { Button } from "~/components/ui/button";
+import { useSelectedDestinations } from "~/lib/contexts/SelectedDestinationsContext";
 
 interface DestinationDetailProps {
     destination: Destination;
@@ -17,6 +19,8 @@ export const DestinationDetail: React.FC<DestinationDetailProps> = ({
     onClose,
     onSwipe
 }) => {
+    const navigate = useNavigate();
+    const { addDestination, removeDestination } = useSelectedDestinations();
     return (
         <AnimatePresence>
             {isOpen && (
@@ -51,7 +55,8 @@ export const DestinationDetail: React.FC<DestinationDetailProps> = ({
                     </div>
 
                     {/* Content Section */}
-                    <div className="relative -mt-12 px-6 pb-32 flex-1">
+                    {/* 하단 바 높이만큼 패딩 추가 (pb-32 -> pb-40) */}
+                    <div className="relative -mt-12 px-6 pb-40 flex-1 overflow-y-auto hide-scrollbar">
                         {/* Basic Info */}
                         <div className="flex flex-col gap-2 mb-6">
                             <div className="flex flex-wrap gap-2">
@@ -136,33 +141,39 @@ export const DestinationDetail: React.FC<DestinationDetailProps> = ({
                     </div>
 
                     {/* Bottom Action Bar */}
-                    <div className="fixed bottom-0 left-0 w-full p-6 pb-10 border-t border-white/5 bg-background-dark/80 backdrop-blur-xl flex flex-col gap-6 z-[110]">
-                        <Button
-                            className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-[0_8px_20px_-4px_rgba(37,175,244,0.4)] transition-all active:scale-[0.98]"
+                    <div className="fixed bottom-0 left-0 w-full p-4 pb-8 border-t border-white/5 bg-background-dark/90 backdrop-blur-xl flex flex-row items-center gap-3 z-[110]">
+                        <button
                             onClick={() => {
-                                // 향후 /route 페이지로 이동하는 로직이 들어갈 자리입니다.
-                                // 현재는 UI 프로토타입 단계이므로 알림창으로 대체하거나 빈 핸들러를 둡니다.
-                                console.log("Navigating to route page...");
+                                removeDestination(destination.id);
+                                onSwipe("left");
                                 onClose();
+                            }}
+                            className="shrink-0 size-14 rounded-full bg-surface-dark border border-white/5 text-rose-500 shadow-xl active:scale-90 transition-all flex items-center justify-center"
+                        >
+                            <X className="w-7 h-7" />
+                        </button>
+
+                        <Button
+                            className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-base shadow-[0_8px_20px_-4px_rgba(37,175,244,0.4)] transition-all active:scale-[0.98]"
+                            onClick={() => {
+                                addDestination(destination);
+                                onClose();
+                                navigate("/route");
                             }}
                         >
                             이곳을 포함한 동선 보기
                         </Button>
 
-                        <div className="flex justify-center gap-8">
-                            <button
-                                onClick={() => { onSwipe("left"); onClose(); }}
-                                className="size-16 rounded-full bg-surface-dark border border-white/5 text-rose-500 shadow-xl active:scale-90 transition-all flex items-center justify-center"
-                            >
-                                <X className="w-10 h-10" />
-                            </button>
-                            <button
-                                onClick={() => { onSwipe("right"); onClose(); }}
-                                className="size-16 rounded-full bg-primary text-white shadow-xl shadow-primary/30 active:scale-110 transition-all flex items-center justify-center"
-                            >
-                                <Heart className="w-10 h-10 fill-current" />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => {
+                                addDestination(destination);
+                                onSwipe("right");
+                                onClose();
+                            }}
+                            className="shrink-0 size-14 rounded-full bg-primary text-white shadow-xl shadow-primary/30 active:scale-110 transition-all flex items-center justify-center"
+                        >
+                            <Heart className="w-7 h-7 fill-current" />
+                        </button>
                     </div>
                 </motion.div>
             )}
