@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, useMotionValue } from "framer-motion";
 import { SwipeCard } from "./SwipeCard";
 import type { Destination } from "~/lib/mock-data";
-import { Heart, X, RotateCcw, Info } from "lucide-react";
+import { Heart, X, RotateCcw } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
 interface SwipeStackProps {
@@ -13,12 +13,16 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
     const [stack, setStack] = useState<Destination[]>(initialDestinations);
     const [history, setHistory] = useState<Destination[]>([]);
 
+    // 앞 카드의 드래그 x 값을 MotionValue로 관리하여 배경 카드와 공유
+    const dragX = useMotionValue(0);
+
     const handleSwipe = useCallback((direction: "left" | "right" | "up") => {
         if (stack.length === 0) return;
         const [current, ...remaining] = stack;
         setHistory(prev => [current, ...prev]);
         setStack(remaining);
-    }, [stack]);
+        dragX.set(0); // 다음 카드가 나타날 때 위치 초기화
+    }, [stack, dragX]);
 
     const handleUndo = () => {
         if (history.length > 0) {
@@ -30,22 +34,25 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
 
     return (
         <div className="flex flex-col items-center justify-between w-full h-full max-w-md mx-auto relative group">
-            {/* Background Stack Decoration (Stitch Style) */}
-            <div className="absolute inset-0 top-0 bottom-32 flex flex-col items-center pointer-events-none">
-                <div className="absolute w-[90%] h-[75%] top-[8%] bg-surface-dark rounded-[2.5rem] opacity-20 scale-90 translate-y-8 shadow-lg z-0 transition-all duration-500"></div>
-                <div className="absolute w-[95%] h-[80%] top-[4%] bg-surface-dark rounded-[2.5rem] opacity-40 scale-[0.96] translate-y-4 shadow-lg z-0 transition-all duration-500"></div>
-            </div>
-
             {/* Card Stack Area - Fill up space */}
             <div className="relative w-full flex-1 flex flex-col mt-4 mb-2 z-10 min-h-0">
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence mode="popLayout" initial={false}>
                     {stack.length > 0 ? (
-                        <SwipeCard
-                            key={stack[0].id}
-                            destination={stack[0]}
-                            onSwipe={handleSwipe}
-                            isFront={true}
-                        />
+                        // 상위 3개의 카드만 렌더링하여 성능과 시각적 효과 균형 유지
+                        stack.slice(0, 3).reverse().map((dest, idx) => {
+                            // slice().reverse()를 하는 이유는 AnimatePresence와 zIndex 처리를 위함 (0번이 가장 나중에/위에 렌더링)
+                            const realIndex = stack.slice(0, 3).indexOf(dest);
+                            return (
+                                <SwipeCard
+                                    key={dest.id}
+                                    destination={dest}
+                                    onSwipe={handleSwipe}
+                                    isFront={realIndex === 0}
+                                    index={realIndex}
+                                    dragX={realIndex === 0 ? dragX : dragX} // 모든 카드가 동일한 dragX를 참조하여 실시간 반응
+                                />
+                            );
+                        })
                     ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark/30 rounded-[2.5rem] border-2 border-dashed border-white/10 text-center p-8 z-10">
                             <h3 className="text-2xl font-bold text-white mb-2 font-display uppercase tracking-tight">Out of places!</h3>
