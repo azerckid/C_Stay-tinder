@@ -101,36 +101,42 @@ https://stitch.withgoogle.com/projects/16646836401658870756
 - [x] Better Auth 인증 연동 (Google 로그인)
 - [x] 환경 변수 설정 (.env 파일)
 
-### Phase 3: 핵심 비즈니스 로직
-- [ ] 여행지 데이터 구축
-  - Mock 데이터 생성 (초기 개발용)
-  - 또는 실제 여행지 API 연동 (선택적)
-- [ ] 스와이프 결과 관리
-  - 세션 기반 임시 저장 (선택한 여행지 목록)
-  - DB 저장 (사용자별 선택 히스토리)
-- [ ] 최적 경로 계산 알고리즘
-  - 선택된 여행지들의 위도/경도 기반
-  - TSP (Traveling Salesman Problem) 근사 알고리즘 적용
-  - 또는 Google Maps Directions API 활용
+### Phase 3: 핵심 비즈니스 로직 (완료)
+- [x] 여행지 데이터 구축
+  - [x] Mock 데이터 생성 및 DB Seeding
+  - [x] Home 라우트 Loader를 통한 실제 데이터 조회
+- [x] 스와이프 결과 관리
+  - [x] 스와이프 액션(API) 구현 및 UserSwipes 테이블 저장
+  - [x] 스와이프 UI와 API 연동 (낙관적 업데이트)
+- [x] 여행 계획 생성 로직
+  - [x] 'Like'한 장소 기반 여행 생성(Trip/TripItems) API 구현
+  - [x] 동선 화면(Itinerary)에서 생성 API 호출 및 Toast 알림 적용
 
-### Phase 4: 지도 서비스 통합 및 고도화
-- [ ] 지도 API 통합
-  - Google Maps API 또는 Mapbox 선택
-  - 다크 모드 테마 적용
-  - 경로(Polyline) 그리기
-  - 마커 표시 및 커스텀 스타일링
-- [ ] 실시간 동선 안내 기능
-  - 현재 위치 추적
-  - 다음 장소로의 네비게이션 시작
-  - 경로 이탈 알림 (선택적)
-- [ ] Capacitor를 활용한 모바일 패키징
-  - iOS 네이티브 앱 빌드
-  - Android 네이티브 앱 빌드
-  - 네이티브 기능 연동 (위치 서비스, 푸시 알림 등)
-- [ ] PWA 지원
-  - Service Worker 설정
-  - 오프라인 기능 (선택적)
-  - 홈 화면 추가 기능
+### Phase 4: 지도 서비스 통합 및 고도화 (진행 완료)
+- [x] 지도 API 통합 (Google Maps)
+  - [x] `@vis.gl/react-google-maps` 라이브러리 설치 및 설정
+  - [x] 지도 뷰 컴포넌트 구현 (동선 화면 배경 지도 및 마이 여행 상세 지도)
+  - [x] 여행지 마커(Marker) 커스텀 구현
+  - [x] **정밀 경로(Polyline) 구현**
+    - [x] Google Places API 연동: 명칭 기반 `Place ID` 추출로 도로 진입점 정밀 타격
+    - [x] Google Directions API 전략: 한국 내 `DRIVING` 모드 한계를 극복하기 위해 `TRANSIT` 모드 및 상세 `legs/steps` 경로 파싱 적용
+    - [x] 도로 연결 불가 시(예: 섬) 직선 Fallback 로직 구현
+- [x] 여행 계획 상세 및 관리 (My Trips)
+  - [x] 내 여행 목록 페이지 (`/trips`) 구현 (목록 조회 및 삭제 기능 포함)
+  - [x] 여행 상세 페이지 (`/trips/:tripId`) 구현 (저장된 동선 지도 확인 가능)
+  - [x] 동선 생성 전 장소 개별 삭제(`X` 버튼) 기능 추가 (동선 최적화 편집)
+
+### Phase 5: 향후 고도화 및 서비스 전환 (예정)
+- [ ] **지도 서비스 이원화 정책 (Dual Map Strategy)**
+    - **국내 (South Korea)**: **네이버(Naver) 또는 카카오(Kakao) 지도** 도입
+        - 사유: 국내 안보법에 따른 구글 맵의 정밀 도로/도보 데이터 부족 해결 및 국내 특화 기능 제공
+    - **국외 (International)**: **구글 맵(Google Maps)** 유지
+        - 사유: 글로벌 표준 지도 서비스로서 전 세계 어디에서나 안정적인 데이터 제공 및 확장성 보장
+- [ ] **지도 엔진 전환 연구**
+    - 현재의 `DirectionsOptimizer` 인터페이스를 유지하면서, 사용자 장소의 국가 정보에 따라 엔진을 동적으로 전환하는 로직 설계
+- [ ] **모바일 패키징 (Capacitor)**
+  - [ ] iOS/Android 빌드 환경 구성
+  - [ ] 모바일 네이티브 기능 테스트
 
 ## 5. 구현 시 참고 사항
 

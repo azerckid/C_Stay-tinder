@@ -82,6 +82,8 @@ export const trips = sqliteTable("trips", {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
+    startDate: integer("start_date", { mode: "timestamp" }),
+    endDate: integer("end_date", { mode: "timestamp" }),
     status: text("status").default("draft"), // 'draft' | 'published'
     createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`),
 });

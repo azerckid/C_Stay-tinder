@@ -1,15 +1,38 @@
 import type { Route } from "./+types/route";
-import { useNavigate, Link, useLocation, useLoaderData } from "react-router";
-import { ArrowLeft, Edit, Bookmark, Navigation, Car, MapPin, Clock, User, Home as HomeIcon, Heart, Map as MapIcon } from "lucide-react";
+import { useNavigate, Link, useLocation, useLoaderData, useFetcher } from "react-router";
+import { ArrowLeft, Edit, Bookmark, Navigation, Car, MapPin, Clock, User, Home as HomeIcon, Heart, Map as MapIcon, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { motion } from "framer-motion";
 import { db } from "~/db";
 import { places, userSwipes } from "~/db/schema";
 import { auth } from "~/lib/auth";
 import { eq, and, desc } from "drizzle-orm";
-import type { LoaderFunctionArgs } from "react-router";
-import { useState } from "react";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { MapContainer } from "~/components/map/MapContainer";
+import { DirectionsOptimizer } from "~/components/map/DirectionsOptimizer";
+import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+
+export async function action({ request }: ActionFunctionArgs) {
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const formData = await request.formData();
+  const placeId = formData.get("placeId");
+  const intent = formData.get("intent");
+
+  if (intent === "delete" && typeof placeId === "string") {
+    await db.delete(userSwipes)
+      .where(and(
+        eq(userSwipes.userId, session.user.id),
+        eq(userSwipes.placeId, placeId)
+      ));
+    return { success: true };
+  }
+
+  return null;
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -31,13 +54,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
       lng: places.lng,
       rating: places.rating,
       reviewCount: places.reviewCount,
+      swipedAt: userSwipes.createdAt,
     })
     .from(userSwipes)
     .innerJoin(places, eq(userSwipes.placeId, places.id))
     .where(and(eq(userSwipes.userId, session.user.id), eq(userSwipes.action, "like")))
     .orderBy(desc(userSwipes.createdAt));
 
-  const parsedLiked = liked.map(p => ({
+  // 중복 제거 (최신 스와이프 기준)
+  const uniqueMap = new Map();
+  liked.forEach((item) => {
+    if (!uniqueMap.has(item.id)) {
+      uniqueMap.set(item.id, item);
+    }
+  });
+  const uniqueLiked = Array.from(uniqueMap.values());
+
+  const parsedLiked = uniqueLiked.map(p => ({
     ...p,
     tags: (p.tags as string[]) || [],
     imageUrl: p.imageUrl || "",
@@ -54,15 +87,10 @@ export function meta({ }: Route.MetaArgs) {
   ];
 }
 
-// ... helper functions (calculateRouteInfo, getTransportInfo, etc.) ...
-// Mock 타입 정의는 제거하고 실제 타입을 사용할 수 있지만, 기존 helper 함수들이 Mock 타입을 쓰고 있으므로 유지하거나 any로 처리합니다.
-// 여기서는 타입 정의를 유지하되 Destination 타입을 호환되게 만듭니다.
-
 import type { Destination } from "~/lib/mock-data";
 
-function calculateRouteInfo(destinations: any[]) { // 타입 유연화
+function calculateRouteInfo(destinations: any[]) {
   const totalPlaces = destinations.length;
-  // ... (기존 로직 유지)
   const estimatedTimePerPlace = 2; // 시간
   const estimatedTravelTime = (totalPlaces > 0 ? totalPlaces - 1 : 0) * 0.5;
   const totalTime = totalPlaces * estimatedTimePerPlace + estimatedTravelTime;
@@ -75,7 +103,6 @@ function calculateRouteInfo(destinations: any[]) { // 타입 유연화
   };
 }
 
-// ... other helpers ...
 function getTransportInfo(index: number): { type: "car" | "walk"; time: number; label: string } {
   if (index === 0) return { type: "car", time: 15, label: "차량 15분 이동" };
   return { type: "walk", time: 10, label: "도보 10분 이동" };
@@ -106,7 +133,50 @@ export default function RoutePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { likedPlaces } = useLoaderData<typeof loader>();
-  const routeInfo = calculateRouteInfo(likedPlaces);
+  const fetcher = useFetcher();
+
+  const handleRemovePlace = (placeId: string) => {
+    if (confirm("이 장소를 경로에서 제외하시겠습니까?")) {
+      fetcher.submit(
+        { intent: "delete", placeId },
+        { method: "POST" }
+      );
+    }
+  };
+
+  // 거리 기반 최적 경로 정렬 (Nearest Neighbor Heuristic)
+  const optimizeRoute = (places: typeof likedPlaces) => {
+    if (places.length <= 2) return places;
+
+    const sorted = [places[0]]; // 첫 번째 장소는 고정 (출발지)
+    const remaining = [...places.slice(1)];
+
+    while (remaining.length > 0) {
+      const current = sorted[sorted.length - 1];
+      let nearestIndex = 0;
+      let minDist = Infinity;
+
+      remaining.forEach((place, index) => {
+        const dist = Math.sqrt(
+          Math.pow(place.coordinates.lat - current.coordinates.lat, 2) +
+          Math.pow(place.coordinates.lng - current.coordinates.lng, 2)
+        );
+        if (dist < minDist) {
+          minDist = dist;
+          nearestIndex = index;
+        }
+      });
+
+      sorted.push(remaining[nearestIndex]);
+      remaining.splice(nearestIndex, 1);
+    }
+    return sorted;
+  };
+
+  // sortedPlaces를 useMemo로 메모이제이션하여 무한 루프 방지
+  const sortedPlaces = useMemo(() => optimizeRoute(likedPlaces), [likedPlaces]);
+  const routeInfo = calculateRouteInfo(sortedPlaces);
+
   const isActive = (path: string) => location.pathname === path;
   const [isCreating, setIsCreating] = useState(false);
 
@@ -116,10 +186,10 @@ export default function RoutePage() {
       const res = await fetch("/api/trips/create", { method: "POST" });
       if (res.ok) {
         const data = await res.json();
-        toast.success("여행 계획이 생성되었습니다!", {
-          description: "Trip has been saved successfully.",
+        toast.success("여행 계획이 저장되었습니다!", {
+          description: "상세 페이지로 이동합니다.",
         });
-        // navigate(`/trips/${data.tripId}`); // 상세 페이지로 이동 가능
+        navigate(`/trips/${data.tripId}`); // 상세 페이지로 이동
       } else {
         toast.error("생성 실패", {
           description: "다시 시도해 주세요.",
@@ -174,7 +244,6 @@ export default function RoutePage() {
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-background-dark text-white">
-      {/* (기존 UI 코드 유지하되 selectedDestinations -> likedPlaces 변수명 변경) */}
       {/* Top Navigation (Transparent Overlay) */}
       <div className="absolute top-0 left-0 right-0 z-30 pt-12 pb-4 px-4 flex items-center justify-between pointer-events-none">
         <button
@@ -195,76 +264,33 @@ export default function RoutePage() {
 
       {/* Map Section */}
       <div className="relative h-[45vh] w-full shrink-0">
-        <div className="w-full h-full bg-gray-800 relative overflow-hidden">
-          <img
-            className="w-full h-full object-cover opacity-60"
-            src="/destinations/map_mockup.png"
-            alt="Travel route map"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background-dark" />
-
-          {/* Simulated Route SVG */}
-          <svg className="absolute inset-0 h-full w-full pointer-events-none" style={{ zIndex: 10 }}>
-            {/* Path shadow */}
-            <path
-              d="M120,150 Q180,200 220,280 T300,350"
-              fill="none"
-              stroke="black"
-              strokeLinecap="round"
-              strokeOpacity="0.5"
-              strokeWidth="6"
-            />
-            {/* Actual Path */}
-            <path
-              d="M120,150 Q180,200 220,280 T300,350"
-              fill="none"
-              stroke="#25aff4"
-              strokeDasharray="8 4"
-              strokeLinecap="round"
-              strokeWidth="4"
-            />
-            {/* Pulsing Current Location Effect at Start */}
-            <circle cx="120" cy="150" fill="#25aff4" r="8">
-              <animate
-                attributeName="r"
-                dur="2s"
-                repeatCount="indefinite"
-                values="8;12;8"
+        <MapContainer
+          center={sortedPlaces[0]?.coordinates || { lat: 37.5665, lng: 126.9780 }}
+          zoom={12}
+          className="w-full h-full"
+        >
+          {sortedPlaces.map((dest, index) => (
+            <AdvancedMarker
+              key={dest.id}
+              position={dest.coordinates}
+              title={dest.name}
+            >
+              <Pin
+                background={index === 0 ? "#FF0055" : "#1e293b"}
+                borderColor={"#ffffff"}
+                glyphColor={"#ffffff"}
               />
-              <animate
-                attributeName="opacity"
-                dur="2s"
-                repeatCount="indefinite"
-                values="1;0.5;1"
-              />
-            </circle>
-          </svg>
-
-          {/* Map Markers */}
-          {likedPlaces.map((dest, index) => {
-            const isFirst = index === 0;
-            const top = 130 + index * 200;
-            const left = 100 + index * 180;
-            return (
-              <div
-                key={dest.id}
-                className="absolute z-20 flex flex-col items-center"
-                style={{ top: `${top}px`, left: `${left}px` }}
-              >
-                <div
-                  className={`text-white text-xs font-bold px-2 py-1 rounded-lg mb-1 shadow-lg whitespace-nowrap ${isFirst ? "bg-primary" : "bg-surface-dark border border-gray-700"
-                    }`}
-                >
-                  {isFirst ? `출발: ${dest.name}` : dest.name}
-                </div>
-                <div
-                  className={`size-4 bg-white rounded-full shadow-lg ${isFirst ? "border-4 border-primary" : "border-4 border-gray-500"
-                    }`}
-                />
-              </div>
-            );
-          })}
-        </div>
+            </AdvancedMarker>
+          ))}
+          {sortedPlaces.length >= 2 && (
+            <DirectionsOptimizer
+              places={sortedPlaces}
+              strokeColor="#25aff4" // Design System Primary
+            />
+          )}
+        </MapContainer>
+        {/* Gradients Overlay for smooth transition */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10" />
       </div>
 
       {/* Bottom Sheet / Route List */}
@@ -292,7 +318,7 @@ export default function RoutePage() {
         {/* Timeline List */}
         <div className="flex-1 overflow-y-auto hide-scrollbar p-6">
           <div className="relative pl-4 border-l-2 border-dashed border-gray-800 space-y-8">
-            {likedPlaces.map((dest, index) => {
+            {sortedPlaces.map((dest, index) => {
               const isFirst = index === 0;
               const transport = getTransportInfo(index);
               const timeSlot = getTimeSlot(index);
@@ -304,8 +330,17 @@ export default function RoutePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="relative"
+                  className="relative group/card"
                 >
+                  {/* Remove Button */}
+                  <button
+                    onClick={() => handleRemovePlace(dest.id)}
+                    className="absolute right-0 top-0 p-2 text-slate-500 hover:text-red-500 active:bg-red-500/10 rounded-full transition-colors z-20"
+                    title="경로에서 제외"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+
                   {/* Timeline Dot */}
                   <div
                     className={`absolute -left-[25px] top-0 size-5 rounded-full border-4 border-background-dark shadow-sm z-10 ${isFirst ? "bg-primary" : "bg-gray-600"
@@ -345,7 +380,7 @@ export default function RoutePage() {
                   </div>
 
                   {/* Transport Connector */}
-                  {index < likedPlaces.length - 1 && (
+                  {index < sortedPlaces.length - 1 && (
                     <div className="relative py-2 pl-4">
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 text-xs font-medium text-gray-300 border border-gray-700">
                         {transport.type === "car" ? (
@@ -430,4 +465,3 @@ export default function RoutePage() {
     </div>
   );
 }
-
