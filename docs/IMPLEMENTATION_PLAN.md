@@ -90,16 +90,16 @@ https://stitch.withgoogle.com/projects/16646836401658870756
 - [x] 선택된 여행지 상태 관리 (Context API 사용)
 - [ ] Shared Element Transition (선택적, framer-motion) - 향후 개선 사항
 
-### Phase 2: 데이터베이스 및 인프라 구축
-- [ ] Drizzle ORM 설치 및 설정
-- [ ] DB 스키마 설계 및 마이그레이션
+### Phase 2: 데이터베이스 및 인프라 구축 (완료)
+- [x] Drizzle ORM 설치 및 설정
+- [x] DB 스키마 설계 및 마이그레이션
   - `places` 테이블 (여행지 정보)
   - `trips` 테이블 (사용자 여행 계획)
-  - `selections` 테이블 (스와이프 선택 결과)
-  - `users` 테이블 (사용자 정보)
-- [ ] Turso (libSQL) 데이터베이스 연결
-- [ ] Better Auth 인증 연동 (Google, Kakao 로그인)
-- [ ] 환경 변수 설정 (.env 파일)
+  - `selections` 테이블 (스와이프 선택 결과 - userSwipes)
+  - `user`, `session`, `account` 테이블 (Better Auth)
+- [x] Turso (libSQL) 데이터베이스 연결
+- [x] Better Auth 인증 연동 (Google 로그인)
+- [x] 환경 변수 설정 (.env 파일)
 
 ### Phase 3: 핵심 비즈니스 로직
 - [ ] 여행지 데이터 구축

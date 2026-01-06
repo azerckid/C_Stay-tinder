@@ -12,8 +12,12 @@ export function meta({ }: Route.MetaArgs) {
   ];
 }
 
+import { authClient } from "~/lib/auth-client";
+import { LoginButton, LogoutButton } from "~/components/auth/AuthButtons";
+
 export default function Home() {
   const location = useLocation();
+  const { data: session } = authClient.useSession();
   const { selectedDestinations } = useSelectedDestinations();
   const isActive = (path: string) => location.pathname === path;
 
@@ -28,9 +32,28 @@ export default function Home() {
           </div>
           <h1 className="text-xl font-bold tracking-tight drop-shadow-md">Discover</h1>
         </div>
-        <button className="flex items-center justify-center size-10 rounded-full bg-surface-dark/40 backdrop-blur-xl border border-white/10 text-slate-300 hover:text-white transition-all pointer-events-auto shadow-lg active:scale-90">
-          <Settings2 className="w-5 h-5" />
-        </button>
+
+        <div className="flex items-center gap-3 pointer-events-auto">
+          {!session ? (
+            <LoginButton />
+          ) : (
+            <div className="flex items-center gap-2 bg-surface-dark/40 backdrop-blur-xl border border-white/10 rounded-full p-1 pr-2 shadow-lg">
+              {session.user.image ? (
+                <img src={session.user.image} alt={session.user.name} className="size-8 rounded-full object-cover" />
+              ) : (
+                <div className="size-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold">
+                  {session.user.name.charAt(0)}
+                </div>
+              )}
+              <span className="text-xs font-medium max-w-[80px] truncate hidden sm:block">{session.user.name}</span>
+              <LogoutButton />
+            </div>
+          )}
+
+          <button className="flex items-center justify-center size-10 rounded-full bg-surface-dark/40 backdrop-blur-xl border border-white/10 text-slate-300 hover:text-white transition-all shadow-lg active:scale-90">
+            <Settings2 className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content: Swipe Area - Full-screen filling logic */}
@@ -44,9 +67,8 @@ export default function Home() {
           {/* Home Tab */}
           <Link
             to="/"
-            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group ${
-              isActive("/") ? "text-primary" : "text-slate-500 hover:text-slate-300"
-            }`}
+            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group ${isActive("/") ? "text-primary" : "text-slate-500 hover:text-slate-300"
+              }`}
           >
             <div className="relative">
               <HomeIcon className="w-6 h-6 transition-transform group-active:scale-90" />
@@ -69,9 +91,8 @@ export default function Home() {
           {/* Itinerary Tab */}
           <Link
             to="/route"
-            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group relative ${
-              isActive("/route") ? "text-primary" : "text-slate-500 hover:text-slate-300"
-            }`}
+            className={`flex flex-col items-center gap-1.5 p-2 min-w-[64px] transition-all group relative ${isActive("/route") ? "text-primary" : "text-slate-500 hover:text-slate-300"
+              }`}
           >
             <MapIcon className="w-6 h-6 transition-transform group-active:scale-90" />
             {selectedDestinations.length > 0 && (
