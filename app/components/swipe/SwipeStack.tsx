@@ -18,11 +18,19 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
 
     const handleSwipe = useCallback((direction: "left" | "right" | "up") => {
         if (stack.length === 0) return;
+
         const [current, ...remaining] = stack;
         setHistory(prev => [current, ...prev]);
-        setStack(remaining);
-        dragX.set(0); // 다음 카드가 나타날 때 위치 초기화
-    }, [stack, dragX]);
+
+        // 마지막 카드를 넘기면 다시 처음부터 스택을 채움 (무한 루프)
+        if (remaining.length === 0) {
+            setStack(initialDestinations);
+        } else {
+            setStack(remaining);
+        }
+
+        dragX.set(0);
+    }, [stack, dragX, initialDestinations]);
 
     const handleUndo = () => {
         if (history.length > 0) {
@@ -37,35 +45,23 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
             {/* Card Stack Area - Fill up space */}
             <div className="relative w-full flex-1 flex flex-col mt-4 mb-2 z-10 min-h-0">
                 <AnimatePresence mode="popLayout" initial={false}>
-                    {stack.length > 0 ? (
-                        // 상위 3개의 카드만 렌더링하여 성능과 시각적 효과 균형 유지
-                        stack.slice(0, 3).reverse().map((dest, idx) => {
-                            // slice().reverse()를 하는 이유는 AnimatePresence와 zIndex 처리를 위함 (0번이 가장 나중에/위에 렌더링)
-                            const realIndex = stack.slice(0, 3).indexOf(dest);
-                            return (
-                                <SwipeCard
-                                    key={dest.id}
-                                    destination={dest}
-                                    onSwipe={handleSwipe}
-                                    isFront={realIndex === 0}
-                                    index={realIndex}
-                                    dragX={realIndex === 0 ? dragX : dragX} // 모든 카드가 동일한 dragX를 참조하여 실시간 반응
-                                />
-                            );
-                        })
-                    ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark/30 rounded-[2.5rem] border-2 border-dashed border-white/10 text-center p-8 z-10">
-                            <h3 className="text-2xl font-bold text-white mb-2 font-display uppercase tracking-tight">Out of places!</h3>
-                            <p className="text-text-secondary mb-8 text-sm">You've explored all destinations for now.</p>
-                            <Button
-                                onClick={() => setStack(initialDestinations)}
-                                variant="outline"
-                                className="rounded-full border-primary text-primary hover:bg-primary/10 px-8 py-6 h-auto"
-                            >
-                                Reset Stack
-                            </Button>
-                        </div>
-                    )}
+                    {stack.map((dest, idx) => {
+                        // 성능을 위해 상위 3개만 렌더링하도록 맵 내부에서 필터링
+                        if (idx >= 3) return null;
+
+                        // 뒤에 있는 카드가 아래에서 렌더링되게 하기 위해 역순 인덱스 계산
+                        const realIndex = idx;
+                        return (
+                            <SwipeCard
+                                key={`${dest.id}-${stack.length}-${idx}`} // 루프 시 애니메이션 재트리거를 위해 키 조합 최적화
+                                destination={dest}
+                                onSwipe={handleSwipe}
+                                isFront={realIndex === 0}
+                                index={realIndex}
+                                dragX={realIndex === 0 ? dragX : dragX}
+                            />
+                        );
+                    }).reverse()}
                 </AnimatePresence>
             </div>
 
