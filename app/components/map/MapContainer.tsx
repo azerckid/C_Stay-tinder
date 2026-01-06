@@ -104,7 +104,6 @@ export function MapContainer({ center, zoom = 10, className, children }: MapCont
                     gestureHandling={"greedy"}
                     disableDefaultUI={true}
                     styles={DARK_MAP_STYLE}
-                    mapId={"DEMO_MAP_ID"} // Performance optimization/Vector map (Optional)
                     className="w-full h-full"
                 >
                     {children}

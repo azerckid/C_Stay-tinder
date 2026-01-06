@@ -58,6 +58,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
         await db.insert(tripItems).values(itemsToInsert);
 
+        // 💡 4. 여행 생성 후 스와이프 기록 초기화 (Itinerary 비우기)
+        // 사용자가 이미 '여행 계획'으로 확정한 장소들이므로, 다음 계획을 위해 비워줍니다.
+        await db.delete(userSwipes).where(
+            and(
+                eq(userSwipes.userId, userId),
+                eq(userSwipes.action, "like")
+            )
+        );
+
         return new Response(JSON.stringify({ success: true, tripId }), {
             status: 200,
             headers: { "Content-Type": "application/json" },

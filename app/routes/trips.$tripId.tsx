@@ -1,14 +1,14 @@
 import type { Route } from "./+types/trips.$tripId";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useFetcher } from "react-router";
 import { db } from "~/db";
 import { trips, tripItems, places, userSwipes } from "~/db/schema";
 import { eq, asc, and } from "drizzle-orm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapContainer } from "~/components/map/MapContainer";
 import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { DirectionsOptimizer } from "~/components/map/DirectionsOptimizer";
-import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Car, Share2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Calendar, MapPin, Car, Share2, Edit2, Check, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { toast } from "sonner";
 
@@ -51,6 +51,32 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 export default function TripDetailPage() {
     const { trip, places } = useLoaderData<typeof loader>();
+    const fetcher = useFetcher();
+
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+    const [renameValue, setRenameValue] = useState(trip.title);
+
+    // Update renameValue if trip title changes from server (after successful update)
+    useEffect(() => {
+        setRenameValue(trip.title);
+    }, [trip.title]);
+
+    const handleRenameSubmit = () => {
+        if (!renameValue.trim()) {
+            toast.error("제목을 입력해주세요.");
+            return;
+        }
+        if (renameValue === trip.title) {
+            setIsRenameModalOpen(false);
+            return;
+        }
+
+        fetcher.submit(
+            { tripId: trip.id, title: renameValue.trim() },
+            { method: "POST", action: "/api/trips/update" }
+        );
+        setIsRenameModalOpen(false);
+    };
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -103,7 +129,20 @@ export default function TripDetailPage() {
             {/* Content Section */}
             <div className="flex-1 bg-background-dark -mt-6 rounded-t-3xl relative z-20 px-6 pt-8 pb-10 shadow-t-2xl shadow-black/50 overflow-hidden flex flex-col">
                 <div className="flex flex-col gap-2 mb-8">
-                    <h1 className="text-2xl font-bold">{trip.title}</h1>
+                    <div className="flex items-center justify-between group">
+                        <h1
+                            onClick={() => setIsRenameModalOpen(true)}
+                            className="text-2xl font-bold cursor-pointer hover:text-white/80 transition-colors flex-1"
+                        >
+                            {trip.title}
+                        </h1>
+                        <button
+                            onClick={() => setIsRenameModalOpen(true)}
+                            className="p-2 text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all outline-none"
+                        >
+                            <Edit2 className="w-5 h-5" />
+                        </button>
+                    </div>
                     <div className="flex items-center gap-2 text-slate-400 text-sm">
                         <Calendar className="w-4 h-4" />
                         <span>
@@ -162,6 +201,63 @@ export default function TripDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Rename Modal */}
+            <AnimatePresence>
+                {isRenameModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsRenameModalOpen(false)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-sm bg-surface-dark border border-white/10 rounded-[2rem] p-8 shadow-2xl"
+                        >
+                            <h2 className="text-xl font-bold mb-6">여행 계획 이름 변경</h2>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-400 ml-1">새 이름</label>
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={renameValue}
+                                        onChange={(e) => setRenameValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleRenameSubmit();
+                                            if (e.key === "Escape") setIsRenameModalOpen(false);
+                                        }}
+                                        placeholder="여행 이름을 입력하세요"
+                                        className="w-full bg-background-dark/50 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 ring-primary/50 transition-all"
+                                    />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setIsRenameModalOpen(false)}
+                                        className="flex-1 rounded-xl h-12 font-bold text-slate-400 hover:text-white"
+                                    >
+                                        취소
+                                    </Button>
+                                    <Button
+                                        onClick={handleRenameSubmit}
+                                        className="flex-1 rounded-xl h-12 font-bold bg-primary text-white shadow-lg shadow-primary/20"
+                                    >
+                                        변경하기
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
+
+

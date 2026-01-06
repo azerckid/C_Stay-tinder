@@ -24,41 +24,35 @@ export function DirectionsOptimizer({
     const routesLibrary = useMapsLibrary("routes");
     const placesLibrary = useMapsLibrary("places"); // 💡 Places 라이브러리 로드
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
-    const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
     const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
 
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
-        if (placesLibrary) {
-            setPlacesService(new google.maps.places.PlacesService(map));
-        }
-    }, [routesLibrary, placesLibrary, map]);
+    }, [routesLibrary, map]);
 
-    // 💡 장소명으로 Place ID를 가져오는 함수
+    // 💡 장소명으로 Place ID를 가져오는 함수 (최신 Place.searchByText API 사용)
     const getPlaceId = useCallback(async (place: Place): Promise<string | null> => {
-        if (!placesService) return null;
+        if (!placesLibrary) return null;
 
-        return new Promise((resolve) => {
-            const query = `${place.location || ""} ${place.name}`;
-            placesService.findPlaceFromQuery(
-                {
-                    query,
-                    fields: ["place_id", "geometry"],
-                    locationBias: { lat: place.coordinates.lat, lng: place.coordinates.lng }
-                },
-                (results, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
-                        console.log(`📍 Found Place ID for [${place.name}]:`, results[0].place_id);
-                        resolve(results[0].place_id || null);
-                    } else {
-                        console.warn(`⚠️ Could not find Place ID for [${place.name}], using coords instead.`);
-                        resolve(null);
-                    }
-                }
-            );
-        });
-    }, [placesService]);
+        try {
+            const { Place } = placesLibrary;
+            const request: google.maps.places.SearchByTextRequest = {
+                textQuery: `${place.location || ""} ${place.name}`,
+                fields: ["id", "location"],
+                locationBias: { lat: place.coordinates.lat, lng: place.coordinates.lng }
+            };
+
+            const { places: foundPlaces } = await Place.searchByText(request);
+            if (foundPlaces && foundPlaces.length > 0) {
+                console.log(`📍 Found Place ID for [${place.name}]:`, foundPlaces[0].id);
+                return foundPlaces[0].id;
+            }
+        } catch (error) {
+            console.warn(`⚠️ Could not find Place ID for [${place.name}] via SearchByText, using coords instead.`, error);
+        }
+        return null;
+    }, [placesLibrary]);
 
     const calculateRoute = useCallback(async (service: google.maps.DirectionsService) => {
         if (places.length < 2) return;
@@ -119,8 +113,8 @@ export function DirectionsOptimizer({
     };
 
     useEffect(() => {
-        if (directionsService && placesService) calculateRoute(directionsService);
-    }, [directionsService, placesService, calculateRoute]);
+        if (directionsService && placesLibrary) calculateRoute(directionsService);
+    }, [directionsService, placesLibrary, calculateRoute]);
 
     if (routePath.length === 0) return null;
 

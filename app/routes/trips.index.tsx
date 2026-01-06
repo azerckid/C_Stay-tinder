@@ -1,10 +1,13 @@
 import type { Route } from "./+types/trips.index";
 import { Link, useLoaderData, useFetcher, type ActionFunctionArgs } from "react-router";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Button } from "~/components/ui/button";
 import { db } from "~/db";
 import { trips, tripItems, places } from "~/db/schema";
 import { auth } from "~/lib/auth";
 import { eq, desc, sql, and } from "drizzle-orm";
-import { ArrowLeft, Calendar, MapPin, ChevronRight, Plane, Trash2, MoreVertical } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, ChevronRight, Plane, Trash2, MoreVertical, Edit2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -76,16 +79,48 @@ export default function TripsIndexPage() {
     const { trips } = useLoaderData<typeof loader>();
     const fetcher = useFetcher();
 
-    const handleDelete = (e: React.MouseEvent, tripId: string) => {
+    const [renameModal, setRenameModal] = useState<{ isOpen: boolean; id: string; currentTitle: string }>({
+        isOpen: false,
+        id: "",
+        currentTitle: "",
+    });
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string }>({
+        isOpen: false,
+        id: "",
+    });
+    const [renameValue, setRenameValue] = useState("");
+
+    const handleRenameClick = (e: React.MouseEvent, tripId: string, currentTitle: string) => {
         e.preventDefault();
         e.stopPropagation();
+        setRenameModal({ isOpen: true, id: tripId, currentTitle });
+        setRenameValue(currentTitle);
+    };
 
-        if (confirm("정말로 이 여행 계획을 삭제하시겠습니까?")) {
+    const handleRenameSubmit = () => {
+        if (renameValue.trim() && renameValue !== renameModal.currentTitle) {
             fetcher.submit(
-                { tripId },
+                { tripId: renameModal.id, title: renameValue.trim() },
+                { method: "POST", action: "/api/trips/update" }
+            );
+        }
+        setRenameModal({ ...renameModal, isOpen: false });
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent, tripId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDeleteModal({ isOpen: true, id: tripId });
+    };
+
+    const handleDeleteSubmit = () => {
+        if (deleteModal.id) {
+            fetcher.submit(
+                { tripId: deleteModal.id },
                 { method: "DELETE" }
             );
         }
+        setDeleteModal({ isOpen: false, id: "" });
     };
 
     return (
@@ -157,7 +192,14 @@ export default function TripsIndexPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-32 bg-[#1a262e] border border-white/10 text-white rounded-xl shadow-2xl p-1.5 overflow-hidden">
                                             <DropdownMenuItem
-                                                onClick={(e) => handleDelete(e, trip.id)}
+                                                onClick={(e) => handleRenameClick(e, trip.id, trip.title)}
+                                                className="focus:text-white focus:bg-white/10 cursor-pointer flex items-center gap-2.5 p-2 rounded-lg transition-colors font-medium outline-none"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                                <span>이름 변경</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={(e) => handleDeleteClick(e, trip.id)}
                                                 variant="destructive"
                                                 className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer flex items-center gap-2.5 p-2 rounded-lg transition-colors font-medium outline-none"
                                             >
@@ -172,6 +214,109 @@ export default function TripsIndexPage() {
                     </div>
                 )}
             </main>
+
+            {/* Deletion Modal */}
+            <AnimatePresence>
+                {deleteModal.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-sm bg-surface-dark border border-white/10 rounded-[2rem] p-8 shadow-2xl"
+                        >
+                            <div className="flex flex-col items-center text-center">
+                                <div className="size-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-6">
+                                    <Trash2 className="w-8 h-8" />
+                                </div>
+                                <h2 className="text-xl font-bold mb-2">여행 계획 삭제</h2>
+                                <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                                    정말로 이 여행 계획을 삭제하시겠습니까?<br />
+                                    삭제된 계획은 다시 복구할 수 없습니다.
+                                </p>
+                                <div className="flex gap-3 w-full">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                                        className="flex-1 rounded-xl h-12 font-bold text-slate-400 hover:text-white"
+                                    >
+                                        취소
+                                    </Button>
+                                    <Button
+                                        onClick={handleDeleteSubmit}
+                                        className="flex-1 rounded-xl h-12 font-bold bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+                                    >
+                                        삭제하기
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Rename Modal */}
+            <AnimatePresence>
+                {renameModal.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setRenameModal({ ...renameModal, isOpen: false })}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-sm bg-surface-dark border border-white/10 rounded-[2rem] p-8 shadow-2xl"
+                        >
+                            <h2 className="text-xl font-bold mb-6">여행 계획 이름 변경</h2>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-400 ml-1">새 이름</label>
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={renameValue}
+                                        onChange={(e) => setRenameValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleRenameSubmit();
+                                            if (e.key === "Escape") setRenameModal({ ...renameModal, isOpen: false });
+                                        }}
+                                        placeholder="여행 이름을 입력하세요"
+                                        className="w-full bg-background-dark/50 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 ring-primary/50 transition-all"
+                                    />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setRenameModal({ ...renameModal, isOpen: false })}
+                                        className="flex-1 rounded-xl h-12 font-bold text-slate-400 hover:text-white"
+                                    >
+                                        취소
+                                    </Button>
+                                    <Button
+                                        onClick={handleRenameSubmit}
+                                        className="flex-1 rounded-xl h-12 font-bold bg-primary text-white shadow-lg shadow-primary/20"
+                                    >
+                                        변경하기
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
+
