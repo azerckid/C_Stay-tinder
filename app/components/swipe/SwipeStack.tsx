@@ -55,8 +55,7 @@ export const SwipeStack: React.FC<SwipeStackProps> = ({ destinations: initialDes
 
     const handleOpenDetail = () => {
         if (stack.length > 0) {
-            // 라우트로 이동하도록 변경
-            navigate(`/destination/${stack[0].id}`);
+            setSelectedDest(stack[0]);
         }
     };
 

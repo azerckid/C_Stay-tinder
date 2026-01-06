@@ -81,7 +81,7 @@ https://stitch.withgoogle.com/projects/16646836401658870756
 #### 1.4 화면 간 전환 및 네비게이션
 - [x] React Router v7 라우팅 설정
   - [x] `/` - 스와이프 선택 화면
-  - [x] `/destination/:id` - 상세 정보 화면
+  - [x] `/destination/:id` - 상세 정보 화면 (UX 개선을 위해 모달 오버레이 방식으로 변경됨)
   - [x] `/route` - 동선 화면
 - [x] 라우트 간 네비게이션 연결
   - [x] 하단 네비게이션 바 링크 연결
