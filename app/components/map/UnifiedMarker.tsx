@@ -16,7 +16,7 @@ export function UnifiedMarker({ position, title, isFirst = false }: UnifiedMarke
     const { provider } = useMapProvider();
 
     if (provider === "kakao") {
-        return <KakaoMarker position={position} title={title} />;
+        return <KakaoMarker position={position} title={title} isFirst={isFirst} />;
     }
 
     return (

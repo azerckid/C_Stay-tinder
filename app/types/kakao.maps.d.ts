@@ -48,6 +48,20 @@ declare namespace kakao.maps {
         strokeStyle?: string;
     }
 
+    class CustomOverlay {
+        constructor(options: CustomOverlayOptions);
+        setMap(map: Map | null): void;
+    }
+
+    interface CustomOverlayOptions {
+        position: LatLng;
+        content: string | HTMLElement;
+        map?: Map;
+        xAnchor?: number;
+        yAnchor?: number;
+        zIndex?: number;
+    }
+
     function load(callback: () => void): void;
 }
 

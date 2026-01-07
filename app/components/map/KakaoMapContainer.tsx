@@ -6,6 +6,7 @@ interface KakaoMapContainerProps {
     zoom?: number;
     className?: string;
     children?: React.ReactNode;
+    onError?: (error: string) => void;
 }
 
 export function KakaoMapContainer({
@@ -13,6 +14,7 @@ export function KakaoMapContainer({
     zoom = 3,
     className,
     children,
+    onError,
 }: KakaoMapContainerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<kakao.maps.Map | null>(null);
@@ -23,19 +25,27 @@ export function KakaoMapContainer({
     const targetCenter = center || defaultCenter;
 
     useEffect(() => {
+        let retryCount = 0;
+        const maxRetries = 50; // 5 seconds total
+
         const loadMap = () => {
             if (window.kakao && window.kakao.maps) {
                 window.kakao.maps.load(() => {
                     if (!containerRef.current) return;
 
-                    const options = {
-                        center: new window.kakao.maps.LatLng(targetCenter.lat, targetCenter.lng),
-                        level: zoom,
-                    };
+                    try {
+                        const options = {
+                            center: new window.kakao.maps.LatLng(targetCenter.lat, targetCenter.lng),
+                            level: zoom,
+                        };
 
-                    const newMap = new window.kakao.maps.Map(containerRef.current, options);
-                    setMap(newMap);
-                    setIsLoaded(true);
+                        const newMap = new window.kakao.maps.Map(containerRef.current, options);
+                        setMap(newMap);
+                        setIsLoaded(true);
+                    } catch (e) {
+                        console.error("Failed to initialize Kakao Map:", e);
+                        onError?.("Initialization Failed");
+                    }
                 });
             }
         };
@@ -47,6 +57,13 @@ export function KakaoMapContainer({
                 if (window.kakao && window.kakao.maps) {
                     loadMap();
                     clearInterval(interval);
+                } else {
+                    retryCount++;
+                    if (retryCount >= maxRetries) {
+                        clearInterval(interval);
+                        console.error("Kakao Maps SDK failed to load");
+                        onError?.("SDK Load Timeout");
+                    }
                 }
             }, 100);
             return () => clearInterval(interval);
@@ -66,8 +83,19 @@ export function KakaoMapContainer({
     }, [map, zoom]);
 
     return (
-        <div className={`w-full h-full relative ${className}`}>
-            <div ref={containerRef} className="w-full h-full" />
+        <div className={`w-full h-full relative overflow-hidden ${className}`}>
+            {/* 
+          Dark Mode Simulation for Kakao Maps 
+          Inverts colors and adjusts hue to maintain a blue/dark aesthetic
+      */}
+            <div
+                ref={containerRef}
+                className="w-full h-full"
+                style={{
+                    filter: 'invert(90%) hue-rotate(180deg) brightness(1.1) contrast(0.9)',
+                    backgroundColor: '#242f3e' // Fallback color
+                }}
+            />
             <KakaoMapContext.Provider value={{ map }}>
                 {isLoaded && children}
             </KakaoMapContext.Provider>

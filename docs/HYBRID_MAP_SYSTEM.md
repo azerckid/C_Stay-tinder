@@ -87,12 +87,22 @@ export function HybridMapContainer({ center, zoom, children }: MapProps) {
 9.  **DirectionsOptimizer 고도화**:
     - `DirectionsOptimizer.tsx` 수정 (엔진별 최적 경로 호출 및 `setBounds` 자동화)
 
-### Phase 3: 고급 기능 및 최적화 (진행 예정)
-10. **여러 장소 혼합 시나리오 처리**: `determineMapEngine` 알고리즘 최적화
-11. **에러 핸들링 및 폴백**: SDK 로드 실패 또는 API 에러 시 폴백 UI 구현
-12. **성능 최적화**: 동적 SDK 로딩 및 코드 스플리팅 적용
-13. **디자인 폴리싱**: 카카오맵 다크모드 유사 구현 (Filter 적용) 및 커스텀 마커 제작
-14. **테스트**: 다양한 시나리오(국내/해외/혼합) 교차 검증
+### Phase 3: 고급 기능 및 최적화 (✅ 완료)
+10. **디자인 폴리싱 (Dark Mode)**:
+    - 카카오맵에 CSS Filter (`invert`, `hue-rotate`)를 적용하여 다크 테마와 조화롭게 구성
+    - `CustomOverlay`를 사용하여 카카오맵 마커를 구글 'Pin' 디자인과 동일하게 구현 (Tailwind 활용)
+11. **에러 핸들링 및 폴백**:
+    - `HybridMapContainer`에 지능형 폴백 로직 추가 (카카오 로드 실패 시 구글로 자동 전환)
+    - SDK 로딩 타임아웃 처리 및 사용자 알림 UI 추가
+12. **성능 최적화**:
+    - `root.tsx`에서 SDK를 `async/defer`로 로드하여 초기 렌더링 성능 확보
+13. **여러 장소 혼합 시나리오 처리**:
+    - `determineMapEngine` 유틸리티를 통한 자동 엔진 선택 전략 수립
+
+### Phase 4: 최종 테스트 및 안정화 (진행 예정)
+14. **교차 검증**: 국내(서울/제주), 해외(도쿄/파리), 혼합 시나리오별 경로 및 마커 확인
+15. **비용 분석**: 구글 맵 API 호출량 감소 확인
+16. **문서화 마무리**: 개발자 가이드 최종 업데이트
 
 ---
 
