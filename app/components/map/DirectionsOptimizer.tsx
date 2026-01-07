@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useMapsLibrary, useMap } from "@vis.gl/react-google-maps";
-import { Polyline } from "./Polyline";
+import { UnifiedPolyline } from "./UnifiedPolyline";
+import { useMapProvider, useKakaoMap } from "./MapContext";
 
 interface Place {
     id?: string;
@@ -21,10 +22,15 @@ export function DirectionsOptimizer({
     onRouteCalculated
 }: DirectionsOptimizerProps) {
     const map = useMap();
+    const { provider } = useMapProvider();
+    const kakaoMapContext = useKakaoMap();
+    const kakaoMap = kakaoMapContext?.map;
+
     const routesLibrary = useMapsLibrary("routes");
-    const placesLibrary = useMapsLibrary("places"); // 💡 Places 라이브러리 로드
+    const placesLibrary = useMapsLibrary("places");
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
-    const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
+    const [routePath, setRoutePath] = useState<{ lat: number; lng: number }[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (!routesLibrary || !map) return;
@@ -105,25 +111,64 @@ export function DirectionsOptimizer({
         });
     }, [places, map, onRouteCalculated, getPlaceId]);
 
-    const fitToPath = (path: google.maps.LatLngLiteral[]) => {
+    // --- Kakao Logic ---
+    const calculateKakaoRoute = useCallback(async () => {
+        if (places.length < 2 || isLoading) return;
+        setIsLoading(true);
+
+        try {
+            const response = await fetch("/api/directions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    places: places.map(p => ({ lat: p.coordinates.lat, lng: p.coordinates.lng }))
+                }),
+            });
+
+            if (!response.ok) throw new Error("Failed to fetch Kakao directions");
+
+            const data = await response.json();
+            const path = data.routes[0].path;
+
+            if (path && path.length > 0) {
+                setRoutePath(path);
+                if (kakaoMap) {
+                    const bounds = new window.kakao.maps.LatLngBounds();
+                    path.forEach((p: any) => bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng)));
+                    kakaoMap.setBounds(bounds);
+                }
+            }
+        } catch (error) {
+            console.error("Kakao Directions error:", error);
+            // Fallback
+            setRoutePath(places.map(p => p.coordinates));
+        } finally {
+            setIsLoading(false);
+        }
+    }, [places, kakaoMap, isLoading]);
+
+    useEffect(() => {
+        if (provider === "kakao") {
+            calculateKakaoRoute();
+        } else if (directionsService && placesLibrary) {
+            calculateRoute(directionsService);
+        }
+    }, [provider, directionsService, placesLibrary, calculateRoute, calculateKakaoRoute]);
+
+    const fitToPath = (path: { lat: number; lng: number }[]) => {
         if (!map || path.length === 0) return;
         const bounds = new google.maps.LatLngBounds();
         path.forEach(p => bounds.extend(p));
         map.fitBounds(bounds, 50);
     };
 
-    useEffect(() => {
-        if (directionsService && placesLibrary) calculateRoute(directionsService);
-    }, [directionsService, placesLibrary, calculateRoute]);
-
     if (routePath.length === 0) return null;
 
     return (
-        <Polyline
+        <UnifiedPolyline
             path={routePath}
             strokeColor={strokeColor}
             strokeWeight={4}
-            strokeOpacity={0}
         />
     );
 }

@@ -5,10 +5,18 @@ declare namespace kakao.maps {
         getLng(): number;
     }
 
+    class LatLngBounds {
+        constructor();
+        extend(latlng: LatLng): void;
+        isEmpty(): boolean;
+    }
+
     class Map {
         constructor(container: HTMLElement, options: MapOptions);
         setCenter(latlng: LatLng): void;
         setLevel(level: number): void;
+        setBounds(bounds: LatLngBounds, paddingTop?: number, paddingRight?: number, paddingBottom?: number, paddingLeft?: number): void;
+        getBounds(): LatLngBounds;
     }
 
     interface MapOptions {

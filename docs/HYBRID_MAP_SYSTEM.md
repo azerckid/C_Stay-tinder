@@ -66,40 +66,33 @@ export function HybridMapContainer({ center, zoom, children }: MapProps) {
 
 ## 4. 실행 계획 (Action Plan)
 
-### Phase 1: 기본 하이브리드 지도 렌더링
+### Phase 1: 기본 하이브리드 지도 렌더링 (✅ 완료)
 1.  **환경 변수 설정**: `.env`에 `VITE_KAKAO_MAP_APP_KEY` 추가
 2.  **SDK 주입**: `app/root.tsx`에 카카오맵 SDK 스크립트 추가
-3.  **엔진 라이브러리 설치**: 필요한 경우 카카오맵 타입 정의(`@types/kakao.maps.d.ts`) 설치
-4.  **지역 판단 로직**: `app/lib/map-utils.ts` 생성 (`isKoreanRegion` 함수)
+3.  **엔진 라이브러리 설치**: `app/types/kakao.maps.d.ts` 수동 작성 및 지속 업데이트
+4.  **지역 판단 로직**: `app/lib/map-utils.ts` 생성 (`isKoreanRegion`, `determineMapEngine`)
 5.  **컴포넌트 구현**: 
-    - `KakaoMapContainer.tsx` 신규 작성
-    - `HybridMapContainer.tsx` 신규 작성
-    - `MapContainer.tsx`와 인터페이스 통일
-6.  **통합**: `routes/route.tsx` 및 `routes/trips.$tripId.tsx`에서 `HybridMapContainer`로 교체
+    - `KakaoMapContainer.tsx`, `HybridMapContainer.tsx` 구현
+    - `MapContext.tsx`를 통한 엔진 상태 및 지도 인스턴스 공유
+    - `UnifiedMarker.tsx`로 마커 추상화 완료
+6.  **통합**: `routes/route.tsx` 및 `routes/trips.$tripId.tsx` 적용 완료
 
-### Phase 2: 경로(Polyline) 통합 ⚠️ **현재 문제 해결 핵심**
+### Phase 2: 경로(Polyline) 및 Directions API 통합 (✅ 완료)
 7.  **Polyline 컴포넌트 확장**:
-    - `KakaoPolyline.tsx` 신규 작성
-    - `UnifiedPolyline.tsx` 신규 작성 (하이브리드 지원)
-    - 기존 `Polyline.tsx`를 `UnifiedPolyline`로 교체
-8.  **점선 스타일 통일**: 두 엔진 모두에서 동일한 점선 스타일 적용
+    - `KakaoPolyline.tsx`, `UnifiedPolyline.tsx` 구현
+    - 두 엔진 모두에서 통일된 경로 렌더링 인터페이스 제공
+8.  **Directions API 하이브리드화**:
+    - `app/lib/directions/kakao-directions.ts` 구현 (카카오 REST API 연동)
+    - `app/routes/api/directions.ts` 수정 (지역별 API 분기 로직 적용)
+9.  **DirectionsOptimizer 고도화**:
+    - `DirectionsOptimizer.tsx` 수정 (엔진별 최적 경로 호출 및 `setBounds` 자동화)
 
-### Phase 3: Directions API 통합 ⚠️ **현재 문제 해결 핵심**
-9.  **Directions API 서비스 구현**:
-    - `app/lib/directions/kakao-directions.ts` 신규 작성
-    - `app/lib/directions/google-directions.ts` 신규 작성 (기존 로직 리팩토링)
-    - `app/lib/directions/unified-directions.ts` 신규 작성 (통합 인터페이스)
-10. **API 라우트 수정**:
-    - `app/routes/api/directions.ts`를 하이브리드 지원하도록 수정
-    - 지역에 따라 적절한 API 선택
-11. **DirectionsOptimizer 수정**:
-    - `app/components/map/DirectionsOptimizer.tsx`를 하이브리드 지원하도록 수정
-
-### Phase 4: 고급 기능 및 최적화
-12. **여러 장소 혼합 시나리오 처리**: 모든 장소 분석하여 엔진 결정
-13. **에러 핸들링 및 폴백**: SDK 로드 실패 시 폴백 전략
-14. **성능 최적화**: 동적 로딩, 코드 스플리팅
-15. **테스트**: 국내/해외/혼합 시나리오 테스트
+### Phase 3: 고급 기능 및 최적화 (진행 예정)
+10. **여러 장소 혼합 시나리오 처리**: `determineMapEngine` 알고리즘 최적화
+11. **에러 핸들링 및 폴백**: SDK 로드 실패 또는 API 에러 시 폴백 UI 구현
+12. **성능 최적화**: 동적 SDK 로딩 및 코드 스플리팅 적용
+13. **디자인 폴리싱**: 카카오맵 다크모드 유사 구현 (Filter 적용) 및 커스텀 마커 제작
+14. **테스트**: 다양한 시나리오(국내/해외/혼합) 교차 검증
 
 ---
 

@@ -1,4 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
+import { isKoreanRegion } from "~/lib/map-utils";
+import { fetchKakaoDirections } from "~/lib/directions/kakao-directions";
 
 export async function action({ request }: ActionFunctionArgs) {
     if (request.method !== "POST") {
@@ -12,6 +14,25 @@ export async function action({ request }: ActionFunctionArgs) {
             return new Response(JSON.stringify({ error: "At least 2 places required" }), { status: 400 });
         }
 
+        // Check if all places are in Korea
+        const allKorean = places.every((p: any) => isKoreanRegion(p.lat, p.lng));
+
+        if (allKorean) {
+            console.log(`[Direction API] Using Kakao Directions for ${places.length} places...`);
+            try {
+                const data = await fetchKakaoDirections({ places });
+                return new Response(JSON.stringify(data), {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                });
+            } catch (kakaoError: any) {
+                console.error("[Direction API] Kakao Directions Error:", kakaoError);
+                // Fallback to Google if Kakao fails? For now, just return error
+                return new Response(JSON.stringify({ error: "Kakao Directions Failed", details: kakaoError.message }), { status: 500 });
+            }
+        }
+
+        // Global / Mixed region: Use Google Maps
         const origin = places[0];
         const destination = places[places.length - 1];
         const intermediates = places.slice(1, -1).map((p: any) => ({
@@ -21,11 +42,11 @@ export async function action({ request }: ActionFunctionArgs) {
         const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
 
         if (!apiKey) {
-            console.error("[Direction API] Missing API Key. Check VITE_GOOGLE_MAPS_API_KEY in .env");
-            return new Response(JSON.stringify({ error: "Configuration Error: Missing API Key" }), { status: 500 });
+            console.error("[Direction API] Missing Google API Key.");
+            return new Response(JSON.stringify({ error: "Configuration Error" }), { status: 500 });
         }
 
-        console.log(`[Direction API] Requesting Routes for ${places.length} places...`);
+        console.log(`[Direction API] Using Google Routes for ${places.length} places...`);
 
         const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
             method: "POST",
@@ -49,23 +70,6 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const data = await response.json();
-
-        // Debugging Logs
-        console.log(`[Direction API] Response OK. Routes found: ${data.routes?.length ?? 0}`);
-        if (data.routes?.length > 0) {
-            console.log("[Direction API] First Route Keys:", Object.keys(data.routes[0]));
-            console.log("[Direction API] Polyline Field Present:", !!data.routes[0].polyline);
-            if (data.routes[0].polyline) {
-                console.log("[Direction API] Polyline encoded length:", data.routes[0].polyline.encodedPolyline?.length);
-            } else {
-                console.warn("[Direction API] WARNING: 'polyline' field missing in route object");
-                console.log("[Direction API] Full Route Object:", JSON.stringify(data.routes[0], null, 2));
-            }
-        } else {
-            console.warn("[Direction API] WARNING: Routes array is empty");
-            console.log("[Direction API] Full Response:", JSON.stringify(data, null, 2));
-        }
-
         return new Response(JSON.stringify(data), {
             status: 200,
             headers: { "Content-Type": "application/json" },
