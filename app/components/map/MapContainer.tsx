@@ -87,11 +87,12 @@ const DARK_MAP_STYLE = [
 interface MapContainerProps {
     center?: { lat: number; lng: number };
     zoom?: number;
+    mapId?: string;
     className?: string;
     children?: React.ReactNode;
 }
 
-export function MapContainer({ center, zoom = 10, className, children }: MapContainerProps) {
+export function MapContainer({ center, zoom = 10, mapId, className, children }: MapContainerProps) {
     // Center default to Seoul if not provided
     const defaultCenter = { lat: 37.5665, lng: 126.9780 };
 
@@ -101,6 +102,7 @@ export function MapContainer({ center, zoom = 10, className, children }: MapCont
                 <Map
                     defaultCenter={center || defaultCenter}
                     defaultZoom={zoom}
+                    mapId={mapId || "DEMO_MAP_ID"} // AdvancedMarker requires a Map ID
                     gestureHandling={"greedy"}
                     disableDefaultUI={true}
                     styles={DARK_MAP_STYLE}
