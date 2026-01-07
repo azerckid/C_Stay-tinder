@@ -19,17 +19,17 @@ export function KakaoMarker({ position, title, isFirst = false }: KakaoMarkerPro
         const content = document.createElement('div');
         content.className = 'relative flex items-center justify-center';
 
-        // Pin-like structure with pure CSS to match Google Advanced Markers
+        // Pure inline styles to guarantee design consistency in Kakao pane
+        const markerColor = isFirst ? '#FF0055' : '#1e293b';
         content.innerHTML = `
-            <div class="relative group cursor-pointer transition-transform duration-200 hover:scale-110">
-                <div class="${isFirst ? 'bg-[#FF0055]' : 'bg-[#1e293b]'} w-7 h-7 rounded-full border-2 border-white shadow-lg flex items-center justify-center relative z-10">
+            <div style="position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <div style="background-color: ${markerColor}; width: 28px; height: 28px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); position: relative; z-index: 10;">
                 </div>
-                <!-- Needle/Arrow -->
-                <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 ${isFirst ? 'bg-[#FF0055]' : 'bg-[#1e293b]'} rotate-45 border-r border-b border-white z-0"></div>
+                <!-- Needle -->
+                <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 12px; height: 12px; background-color: ${markerColor}; border-right: 2px solid white; border-bottom: 2px solid white; z-index: 0;"></div>
                 
-                <!-- Label (Tooltip on hover) -->
                 ${title ? `
-                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/20">
+                <div style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; font-size: 10px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2);">
                     ${title}
                 </div>
                 ` : ''}

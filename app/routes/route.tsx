@@ -310,16 +310,12 @@ export default function RoutePage() {
             />
           ))}
 
-          {/* DirectionsOptimizer is still Google-only for now */}
-          {!isKoreanRegion(
-            sortedPlaces[0]?.coordinates?.lat || 37.5665,
-            sortedPlaces[0]?.coordinates?.lng || 126.9780
-          ) && sortedPlaces.length >= 2 && (
-              <DirectionsOptimizer
-                places={sortedPlaces}
-                strokeColor="#25aff4"
-              />
-            )}
+          {sortedPlaces.length >= 2 && (
+            <DirectionsOptimizer
+              places={sortedPlaces}
+              strokeColor="#25aff4"
+            />
+          )}
         </HybridMapContainer>
         {/* Gradients Overlay for smooth transition */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10" />

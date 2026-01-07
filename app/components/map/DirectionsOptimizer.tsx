@@ -16,28 +16,33 @@ interface DirectionsOptimizerProps {
     onRouteCalculated?: (result: google.maps.DirectionsResult) => void;
 }
 
-export function DirectionsOptimizer({
-    places,
-    strokeColor = "#25aff4",
-    onRouteCalculated
-}: DirectionsOptimizerProps) {
-    const map = useMap();
+export function DirectionsOptimizer(props: DirectionsOptimizerProps) {
     const { provider } = useMapProvider();
-    const kakaoMapContext = useKakaoMap();
-    const kakaoMap = kakaoMapContext?.map;
 
+    if (provider === "kakao") {
+        return <KakaoDirectionsInternal {...props} />;
+    }
+
+    // Google Maps mode
+    return <GoogleDirectionsInternal {...props} />;
+}
+
+/**
+ * 🛰️ Google Maps 전용 서비스 로직
+ * useMap, useMapsLibrary 등 구글 전용 훅을 여기에서만 사용합니다.
+ */
+function GoogleDirectionsInternal({ places, onRouteCalculated }: DirectionsOptimizerProps) {
+    const map = useMap();
     const routesLibrary = useMapsLibrary("routes");
     const placesLibrary = useMapsLibrary("places");
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
     const [routePath, setRoutePath] = useState<{ lat: number; lng: number }[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
     }, [routesLibrary, map]);
 
-    // 💡 장소명으로 Place ID를 가져오는 함수 (최신 Place.searchByText API 사용)
     const getPlaceId = useCallback(async (place: Place): Promise<string | null> => {
         if (!placesLibrary) return null;
 
@@ -50,12 +55,9 @@ export function DirectionsOptimizer({
             };
 
             const { places: foundPlaces } = await Place.searchByText(request);
-            if (foundPlaces && foundPlaces.length > 0) {
-                console.log(`📍 Found Place ID for [${place.name}]:`, foundPlaces[0].id);
-                return foundPlaces[0].id;
-            }
+            if (foundPlaces && foundPlaces.length > 0) return foundPlaces[0].id;
         } catch (error) {
-            console.warn(`⚠️ Could not find Place ID for [${place.name}] via SearchByText, using coords instead.`, error);
+            console.warn(`⚠️ Google SearchByText failed for [${place.name}]`);
         }
         return null;
     }, [placesLibrary]);
@@ -63,15 +65,10 @@ export function DirectionsOptimizer({
     const calculateRoute = useCallback(async (service: google.maps.DirectionsService) => {
         if (places.length < 2) return;
 
-        // 모든 장소의 Place ID를 병렬로 검색
-        const placeIdPromises = places.map(p => getPlaceId(p));
-        const placeIds = await Promise.all(placeIdPromises);
-
-        // DirectionsRequest 구성 (Place ID가 있으면 ID 사용, 없으면 좌표 사용)
+        const placeIds = await Promise.all(places.map(p => getPlaceId(p)));
         const getPoint = (idx: number) => {
             const id = placeIds[idx];
-            if (id) return { placeId: id };
-            return { lat: places[idx].coordinates.lat, lng: places[idx].coordinates.lng };
+            return id ? { placeId: id } : { lat: places[idx].coordinates.lat, lng: places[idx].coordinates.lng };
         };
 
         const request: google.maps.DirectionsRequest = {
@@ -81,37 +78,52 @@ export function DirectionsOptimizer({
                 location: id ? { placeId: id } : { lat: places[i + 1].coordinates.lat, lng: places[i + 1].coordinates.lng },
                 stopover: true
             })),
-            travelMode: google.maps.TravelMode.TRANSIT, // 한국 도로망 최적화
+            travelMode: google.maps.TravelMode.TRANSIT,
         };
 
         service.route(request, (result, status) => {
-            console.log("🛰️ Google Directions API (with Places ID) Status:", status);
-
             if (status === google.maps.DirectionsStatus.OK && result) {
                 const fullPath: google.maps.LatLngLiteral[] = [];
-                const route = result.routes[0];
-
-                // 상세 경로 추출
-                route.legs.forEach(leg => {
+                result.routes[0].legs.forEach(leg => {
                     leg.steps.forEach(step => {
                         step.path.forEach(p => fullPath.push({ lat: p.lat(), lng: p.lng() }));
                     });
                 });
-
-                console.log("✅ Accurate road path extracted with", fullPath.length, "points");
                 setRoutePath(fullPath);
                 if (onRouteCalculated) onRouteCalculated(result);
-                fitToPath(fullPath);
+
+                const bounds = new google.maps.LatLngBounds();
+                fullPath.forEach(p => bounds.extend(p));
+                map?.fitBounds(bounds, 50);
             } else {
-                console.warn("Directions failed with IDs, falling back to straight lines.");
-                const fallback = places.map(p => p.coordinates);
-                setRoutePath(fallback);
-                fitToPath(fallback);
+                setRoutePath(places.map(p => p.coordinates));
             }
         });
     }, [places, map, onRouteCalculated, getPlaceId]);
 
-    // --- Kakao Logic ---
+    useEffect(() => {
+        if (directionsService && placesLibrary) calculateRoute(directionsService);
+    }, [directionsService, placesLibrary, calculateRoute]);
+
+    return (
+        <UnifiedPolyline
+            path={routePath}
+            strokeColor={"#00e5ff"}
+            strokeWeight={6}
+            strokeOpacity={0.9}
+        />
+    );
+}
+
+/**
+ * 🗺️ Kakao Maps 전용 서비스 로직
+ */
+function KakaoDirectionsInternal({ places }: DirectionsOptimizerProps) {
+    const kakaoContext = useKakaoMap();
+    const kakaoMap = kakaoContext?.map;
+    const [routePath, setRoutePath] = useState<{ lat: number; lng: number }[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
     const calculateKakaoRoute = useCallback(async () => {
         if (places.length < 2 || isLoading) return;
         setIsLoading(true);
@@ -130,45 +142,38 @@ export function DirectionsOptimizer({
             const data = await response.json();
             const path = data.routes[0].path;
 
-            if (path && path.length > 0) {
-                setRoutePath(path);
-                if (kakaoMap) {
+            if (path && Array.isArray(path) && path.length > 0) {
+                setRoutePath([...path]);
+                if (kakaoMap && window.kakao?.maps) {
                     const bounds = new window.kakao.maps.LatLngBounds();
-                    path.forEach((p: any) => bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng)));
-                    kakaoMap.setBounds(bounds);
+                    path.forEach((p: any) => {
+                        if (p.lat && p.lng) {
+                            bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+                        }
+                    });
+                    setTimeout(() => kakaoMap.setBounds(bounds), 500);
                 }
+            } else {
+                setRoutePath(places.map(p => p.coordinates));
             }
         } catch (error) {
-            console.error("Kakao Directions error:", error);
-            // Fallback
+            console.error("[KakaoDirectionsInternal] Error:", error);
             setRoutePath(places.map(p => p.coordinates));
         } finally {
             setIsLoading(false);
         }
-    }, [places, kakaoMap, isLoading]);
+    }, [places, kakaoMap]);
 
     useEffect(() => {
-        if (provider === "kakao") {
-            calculateKakaoRoute();
-        } else if (directionsService && placesLibrary) {
-            calculateRoute(directionsService);
-        }
-    }, [provider, directionsService, placesLibrary, calculateRoute, calculateKakaoRoute]);
-
-    const fitToPath = (path: { lat: number; lng: number }[]) => {
-        if (!map || path.length === 0) return;
-        const bounds = new google.maps.LatLngBounds();
-        path.forEach(p => bounds.extend(p));
-        map.fitBounds(bounds, 50);
-    };
-
-    if (routePath.length === 0) return null;
+        calculateKakaoRoute();
+    }, [calculateKakaoRoute]);
 
     return (
         <UnifiedPolyline
             path={routePath}
-            strokeColor={strokeColor}
-            strokeWeight={4}
+            strokeColor={"#00e5ff"}
+            strokeWeight={6}
+            strokeOpacity={0.9}
         />
     );
 }

@@ -92,8 +92,8 @@ export function KakaoMapContainer({
                 ref={containerRef}
                 className="w-full h-full"
                 style={{
-                    filter: 'invert(90%) hue-rotate(180deg) brightness(1.1) contrast(0.9)',
-                    backgroundColor: '#242f3e' // Fallback color
+                    filter: 'invert(100%) hue-rotate(180deg) brightness(0.8) contrast(1.2)',
+                    backgroundColor: '#1a1c1e'
                 }}
             />
             <KakaoMapContext.Provider value={{ map }}>

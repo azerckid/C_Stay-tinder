@@ -112,15 +112,12 @@ export default function TripDetailPage() {
                         />
                     ))}
 
-                    {!isKoreanRegion(
-                        places[0]?.coordinates?.lat || 37.5665,
-                        places[0]?.coordinates?.lng || 126.9780
-                    ) && places.length >= 2 && (
-                            <DirectionsOptimizer
-                                places={places}
-                                strokeColor="#25aff4"
-                            />
-                        )}
+                    {places.length >= 2 && (
+                        <DirectionsOptimizer
+                            places={places}
+                            strokeColor="#25aff4"
+                        />
+                    )}
                 </HybridMapContainer>
                 {/* Gradient Overlay */}
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10" />

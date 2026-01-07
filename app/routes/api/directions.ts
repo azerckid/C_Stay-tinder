@@ -19,6 +19,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (allKorean) {
             console.log(`[Direction API] Using Kakao Directions for ${places.length} places...`);
+            const kakaoKey = process.env.VITE_KAKAO_MAP_REST_API_KEY;
+
+            if (!kakaoKey) {
+                console.error("[Direction API] CRITICAL: VITE_KAKAO_MAP_REST_API_KEY is missing in .env");
+                return new Response(JSON.stringify({ error: "Missing Kakao API Key" }), { status: 500 });
+            }
+
             try {
                 const data = await fetchKakaoDirections({ places });
                 return new Response(JSON.stringify(data), {
@@ -27,7 +34,6 @@ export async function action({ request }: ActionFunctionArgs) {
                 });
             } catch (kakaoError: any) {
                 console.error("[Direction API] Kakao Directions Error:", kakaoError);
-                // Fallback to Google if Kakao fails? For now, just return error
                 return new Response(JSON.stringify({ error: "Kakao Directions Failed", details: kakaoError.message }), { status: 500 });
             }
         }

@@ -46,6 +46,9 @@ declare namespace kakao.maps {
         strokeColor?: string;
         strokeOpacity?: number;
         strokeStyle?: string;
+        zIndex?: number;
+        clickable?: boolean;
+        draggable?: boolean;
     }
 
     class CustomOverlay {
