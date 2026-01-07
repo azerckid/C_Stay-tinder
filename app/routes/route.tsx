@@ -18,9 +18,10 @@ import { eq, and, desc } from "drizzle-orm";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { MapContainer } from "~/components/map/MapContainer";
+import { HybridMapContainer } from "~/components/map/HybridMapContainer";
 import { DirectionsOptimizer } from "~/components/map/DirectionsOptimizer";
-import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { UnifiedMarker } from "~/components/map/UnifiedMarker";
+import { isKoreanRegion } from "~/lib/map-utils";
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -295,31 +296,31 @@ export default function RoutePage() {
 
       {/* Map Section */}
       <div className="relative h-[45vh] w-full shrink-0">
-        <MapContainer
+        <HybridMapContainer
           center={sortedPlaces[0]?.coordinates || { lat: 37.5665, lng: 126.9780 }}
           zoom={12}
           className="w-full h-full"
         >
           {sortedPlaces.map((dest, index) => (
-            <AdvancedMarker
+            <UnifiedMarker
               key={dest.id}
               position={dest.coordinates}
               title={dest.name}
-            >
-              <Pin
-                background={index === 0 ? "#FF0055" : "#1e293b"}
-                borderColor={"#ffffff"}
-                glyphColor={"#ffffff"}
-              />
-            </AdvancedMarker>
-          ))}
-          {sortedPlaces.length >= 2 && (
-            <DirectionsOptimizer
-              places={sortedPlaces}
-              strokeColor="#25aff4" // Design System Primary
+              isFirst={index === 0}
             />
-          )}
-        </MapContainer>
+          ))}
+
+          {/* DirectionsOptimizer is still Google-only for now */}
+          {!isKoreanRegion(
+            sortedPlaces[0]?.coordinates?.lat || 37.5665,
+            sortedPlaces[0]?.coordinates?.lng || 126.9780
+          ) && sortedPlaces.length >= 2 && (
+              <DirectionsOptimizer
+                places={sortedPlaces}
+                strokeColor="#25aff4"
+              />
+            )}
+        </HybridMapContainer>
         {/* Gradients Overlay for smooth transition */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10" />
       </div>

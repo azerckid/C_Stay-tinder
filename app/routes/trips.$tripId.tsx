@@ -4,9 +4,10 @@ import { db } from "~/db";
 import { trips, tripItems, places, userSwipes } from "~/db/schema";
 import { eq, asc, and } from "drizzle-orm";
 import { useState, useEffect } from "react";
-import { MapContainer } from "~/components/map/MapContainer";
-import { AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { HybridMapContainer } from "~/components/map/HybridMapContainer";
+import { UnifiedMarker } from "~/components/map/UnifiedMarker";
 import { DirectionsOptimizer } from "~/components/map/DirectionsOptimizer";
+import { isKoreanRegion } from "~/lib/map-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Calendar, MapPin, Car, Share2, Edit2, Check, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -97,31 +98,30 @@ export default function TripDetailPage() {
 
             {/* Map Section - 50% height */}
             <div className="h-[50vh] w-full shrink-0 relative">
-                <MapContainer
+                <HybridMapContainer
                     center={places[0]?.coordinates || { lat: 37.5665, lng: 126.9780 }}
                     zoom={12}
                     className="w-full h-full"
                 >
-                    {places.map((dest, index) => (
-                        <AdvancedMarker
-                            key={dest.id}
-                            position={dest.coordinates}
-                            title={dest.name}
-                        >
-                            <Pin
-                                background={index === 0 ? "#FF0055" : "#1e293b"}
-                                borderColor={"#ffffff"}
-                                glyphColor={"#ffffff"}
-                            />
-                        </AdvancedMarker>
-                    ))}
-                    {places.length >= 2 && (
-                        <DirectionsOptimizer
-                            places={places}
-                            strokeColor="#25aff4" // Design System Primary (or Pink #FF0055)
+                    {places.map((p, index) => (
+                        <UnifiedMarker
+                            key={p.id}
+                            position={p.coordinates}
+                            title={p.name}
+                            isFirst={index === 0}
                         />
-                    )}
-                </MapContainer>
+                    ))}
+
+                    {!isKoreanRegion(
+                        places[0]?.coordinates?.lat || 37.5665,
+                        places[0]?.coordinates?.lng || 126.9780
+                    ) && places.length >= 2 && (
+                            <DirectionsOptimizer
+                                places={places}
+                                strokeColor="#25aff4"
+                            />
+                        )}
+                </HybridMapContainer>
                 {/* Gradient Overlay */}
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10" />
             </div>
