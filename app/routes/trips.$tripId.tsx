@@ -8,13 +8,14 @@ import { HybridMapContainer } from "~/components/map/HybridMapContainer";
 import { UnifiedMarker } from "~/components/map/UnifiedMarker";
 import { DirectionsOptimizer } from "~/components/map/DirectionsOptimizer";
 import { isKoreanRegion } from "~/lib/map-utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { ArrowLeft, Calendar, MapPin, Car, Share2, Edit2, Check, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { toast } from "sonner";
 
 export async function loader({ params }: Route.LoaderArgs) {
     const { tripId } = params;
+    console.log(`[TripLoader] Fetching trip: ${tripId}`);
     if (!tripId) throw new Response("Not Found", { status: 404 });
 
     const trip = await db.query.trips.findFirst({
@@ -34,16 +35,9 @@ export async function loader({ params }: Route.LoaderArgs) {
         .where(eq(tripItems.tripId, tripId))
         .orderBy(asc(tripItems.order));
 
-    // Transform for UI (Deduplicate Places)
-    const uniqueItems = new Map();
-    items.forEach((item) => {
-        if (!uniqueItems.has(item.place.id)) {
-            uniqueItems.set(item.place.id, item);
-        }
-    });
-
-    const placesData = Array.from(uniqueItems.values()).map((item) => ({
+    const placesData = items.map((item) => ({
         ...item.place,
+        tripItemId: item.id,
         coordinates: { lat: item.place.lat || 0, lng: item.place.lng || 0 },
     }));
 
@@ -79,6 +73,32 @@ export default function TripDetailPage() {
         setIsRenameModalOpen(false);
     };
 
+    const [localPlaces, setLocalPlaces] = useState(places);
+
+    // Sync local state when server data changes (e.g. after a revalidation)
+    useEffect(() => {
+        setLocalPlaces(places);
+    }, [places]);
+
+    const handleReorder = (newOrder: typeof places) => {
+        setLocalPlaces(newOrder);
+
+        // Sync with server
+        const items = newOrder.map((p, idx) => ({
+            id: p.tripItemId,
+            order: idx + 1
+        }));
+
+        fetcher.submit(
+            JSON.stringify({ tripId: trip.id, items }),
+            {
+                method: "POST",
+                action: "/api/trips/reorder",
+                encType: "application/json"
+            }
+        );
+    };
+
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
         toast.success("링크가 복사되었습니다!");
@@ -99,11 +119,11 @@ export default function TripDetailPage() {
             {/* Map Section - 50% height */}
             <div className="h-[50vh] w-full shrink-0 relative">
                 <HybridMapContainer
-                    center={places[0]?.coordinates || { lat: 37.5665, lng: 126.9780 }}
+                    center={localPlaces[0]?.coordinates || { lat: 37.5665, lng: 126.9780 }}
                     zoom={12}
                     className="w-full h-full"
                 >
-                    {places.map((p, index) => (
+                    {localPlaces.map((p, index) => (
                         <UnifiedMarker
                             key={p.id}
                             position={p.coordinates}
@@ -112,9 +132,9 @@ export default function TripDetailPage() {
                         />
                     ))}
 
-                    {places.length >= 2 && (
+                    {localPlaces.length >= 2 && (
                         <DirectionsOptimizer
-                            places={places}
+                            places={localPlaces}
                             strokeColor="#25aff4"
                         />
                     )}
@@ -153,23 +173,28 @@ export default function TripDetailPage() {
 
                 {/* Timeline */}
                 <div className="flex-1 overflow-y-auto hide-scrollbar">
-                    <div className="relative pl-4 border-l-2 border-dashed border-gray-800 space-y-8 pb-10">
-                        {places.map((place, index) => {
+                    <Reorder.Group
+                        axis="y"
+                        values={localPlaces}
+                        onReorder={handleReorder}
+                        className="relative pl-4 border-l-2 border-dashed border-gray-800 space-y-8 pb-10"
+                    >
+                        {localPlaces.map((place, index) => {
                             const isFirst = index === 0;
                             return (
-                                <motion.div
-                                    key={place.id}
+                                <Reorder.Item
+                                    key={place.tripItemId}
+                                    value={place}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="relative"
+                                    className="relative cursor-grab active:cursor-grabbing"
                                 >
                                     {/* Dot */}
                                     <div className={`absolute -left-[25px] top-0 size-5 rounded-full border-4 border-background-dark shadow-sm z-10 ${isFirst ? "bg-primary" : "bg-gray-600"}`} />
 
                                     <div className="flex flex-col gap-3">
                                         <h3 className="text-lg font-bold text-white">{place.name}</h3>
-                                        <div className="flex gap-4 p-3 bg-surface-dark rounded-xl border border-white/5">
+                                        <div className="flex gap-4 p-3 bg-surface-dark rounded-xl border border-white/5 hover:bg-white/5 transition-colors">
                                             <div className="size-16 shrink-0 rounded-lg bg-gray-800 overflow-hidden">
                                                 {place.imageUrl && <img src={place.imageUrl} className="w-full h-full object-cover" alt={place.name} />}
                                             </div>
@@ -184,7 +209,7 @@ export default function TripDetailPage() {
                                     </div>
 
                                     {/* Connector (if not last) */}
-                                    {index < places.length - 1 && (
+                                    {index < localPlaces.length - 1 && (
                                         <div className="relative py-4 pl-4">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-900 rounded-full border border-gray-800 text-xs text-gray-400">
                                                 <Car className="w-3 h-3" />
@@ -192,10 +217,10 @@ export default function TripDetailPage() {
                                             </div>
                                         </div>
                                     )}
-                                </motion.div>
+                                </Reorder.Item>
                             )
                         })}
-                    </div>
+                    </Reorder.Group>
                 </div>
             </div>
 

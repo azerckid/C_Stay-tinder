@@ -20,16 +20,19 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
         const userId = session.user.id;
 
-        // 1. 사용자가 Like한 장소들 조회 (최신순)
-        const likedSwipes = await db
+        // 1. 사용자가 Like한 장소들 및 해당 장소의 좌표 정보 조회
+        const likedPlaces = await db
             .select({
-                placeId: userSwipes.placeId,
+                id: places.id,
+                lat: places.lat,
+                lng: places.lng,
             })
             .from(userSwipes)
+            .innerJoin(places, eq(userSwipes.placeId, places.id))
             .where(and(eq(userSwipes.userId, userId), eq(userSwipes.action, "like")))
             .orderBy(desc(userSwipes.createdAt));
 
-        if (likedSwipes.length === 0) {
+        if (likedPlaces.length === 0) {
             return new Response(JSON.stringify({ error: "No liked places found" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
@@ -37,7 +40,6 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         // 2. 여행(Trip) 생성
-        // UUID 생성을 위해 crypto 사용 (Node 19+ or global)
         const tripId = crypto.randomUUID();
         const tripTitle = `My Auto-Planned Trip ${new Date().toLocaleDateString()}`;
 
@@ -48,11 +50,21 @@ export async function action({ request }: ActionFunctionArgs) {
             status: "draft",
         });
 
-        // 3. 여행 아이템(Trip Items) 생성
-        // 간단하게 순서대로 넣음 (추후 거리순 최적화 필요)
-        const itemsToInsert = likedSwipes.map((swipe, index) => ({
+        // 3. 동선 최적화 (TSP 알고리즘 적용)
+        // 좌표가 없는 경우를 대비해 필터링 후 최적화 수행
+        const validPlaces = likedPlaces.filter(p => p.lat !== null && p.lng !== null) as { id: string; lat: number; lng: number }[];
+        const invalidPlaces = likedPlaces.filter(p => p.lat === null || p.lng === null);
+
+        const { optimizeRoute } = await import("~/lib/optimizer");
+        const optimizedRoute = optimizeRoute(validPlaces);
+
+        // 최적화된 장소들과 좌표가 없어 제외된 장소들을 합침
+        const finalOrder = [...optimizedRoute, ...invalidPlaces];
+
+        // 4. 여행 아이템(Trip Items) 생성
+        const itemsToInsert = finalOrder.map((place, index) => ({
             tripId: tripId,
-            placeId: swipe.placeId,
+            placeId: place.id,
             order: index + 1,
         }));
 

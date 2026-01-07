@@ -14,8 +14,8 @@ interface KakaoPolylineProps {
  */
 export function KakaoPolyline({
     path,
-    strokeColor = "#25aff4",
-    strokeWeight = 4,
+    strokeColor = "#00f3ff",
+    strokeWeight = 2,
     strokeOpacity = 1,
     showGlow = true,
 }: KakaoPolylineProps) {
@@ -41,8 +41,8 @@ export function KakaoPolyline({
 
         // NOTE: If the map is inverted by CSS (dark mode), 
         // BRIGHT colors in code become DARK on screen.
-        // We use a DARK color in code so it becomes BRIGHT/NEON on screen after inversion.
-        const neonColor = "#001a33"; // Very dark blue -> Will look like bright neon cyan on screen
+        // We use a SPECIFIC color in code that becomes NEON CYAN/BLUE on screen after inversion.
+        const neonColor = "#cc0c00"; // Deep reddish -> Inverts to bright neon cyan/blue on screen
 
         // 1. Glow/Background Line
         const newGlowLine = new window.kakao.maps.Polyline({

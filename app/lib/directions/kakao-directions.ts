@@ -71,7 +71,7 @@ export async function fetchKakaoDirections(request: DirectionsRequest): Promise<
             }
 
             const query = new URLSearchParams(queryParams);
-            const url = `https://apis-navi.kakao.com/v1/directions?${query.toString()}`;
+            const url = `https://apis-navi.kakaomobility.com/v1/directions?${query.toString()}`;
 
             console.log(`[KakaoDirections] Requesting segment ${index}: ${url.substring(0, 100)}...`);
 

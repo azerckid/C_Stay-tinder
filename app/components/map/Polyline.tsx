@@ -15,9 +15,9 @@ interface PolylineProps {
  */
 export function Polyline({
     path,
-    strokeColor = "#25aff4", // Primary color (Stitch blue)
+    strokeColor = "#00f3ff", // Neon Blue
     strokeOpacity = 1.0,
-    strokeWeight = 5,
+    strokeWeight = 3,
     showGlow = true,
 }: PolylineProps) {
     const map = useMap();

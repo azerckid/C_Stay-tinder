@@ -108,8 +108,8 @@ function GoogleDirectionsInternal({ places, onRouteCalculated }: DirectionsOptim
     return (
         <UnifiedPolyline
             path={routePath}
-            strokeColor={"#00e5ff"}
-            strokeWeight={6}
+            strokeColor={"#00f3ff"}
+            strokeWeight={3}
             strokeOpacity={0.9}
         />
     );
@@ -171,8 +171,8 @@ function KakaoDirectionsInternal({ places }: DirectionsOptimizerProps) {
     return (
         <UnifiedPolyline
             path={routePath}
-            strokeColor={"#00e5ff"}
-            strokeWeight={6}
+            strokeColor={"#00f3ff"}
+            strokeWeight={3}
             strokeOpacity={0.9}
         />
     );
