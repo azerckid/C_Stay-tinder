@@ -1,5 +1,7 @@
 import type { Route } from "./+types/route";
 import { useNavigate, Link, useLocation, useLoaderData, useFetcher } from "react-router";
+import { useSelectedDestinations } from "~/lib/contexts/SelectedDestinationsContext";
+import { authClient } from "~/lib/auth-client";
 import { ArrowLeft, Edit, Bookmark, Navigation, Car, MapPin, Clock, User, Home as HomeIcon, Heart, Map as MapIcon, X, MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -139,14 +141,37 @@ export default function RoutePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { likedPlaces } = useLoaderData<typeof loader>();
+  const { selectedDestinations, removeDestination } = useSelectedDestinations();
+  const { data: session } = authClient.useSession();
   const fetcher = useFetcher();
+
+  // DB 데이터(likedPlaces)와 로컬 컨텍스트 데이터(selectedDestinations)를 병합
+  // 로그인한 경우 DB 데이터를 우선하고, 비로그인 시 로컬 데이터를 사용합니다.
+  const displayPlaces = useMemo(() => {
+    if (session) {
+      // 로그인 시에는 DB가 우선이지만, 방금 스와이프한 로컬 데이터가 누락되었을 수 있으므로 병합
+      const mergedMap = new Map();
+      likedPlaces.forEach(p => mergedMap.set(p.id, p));
+      selectedDestinations.forEach(p => {
+        if (!mergedMap.has(p.id)) mergedMap.set(p.id, p);
+      });
+      return Array.from(mergedMap.values());
+    }
+    return selectedDestinations;
+  }, [session, likedPlaces, selectedDestinations]);
 
   const handleRemovePlace = (placeId: string) => {
     if (confirm("이 장소를 경로에서 제외하시겠습니까?")) {
-      fetcher.submit(
-        { intent: "delete", placeId },
-        { method: "POST" }
-      );
+      // 1. 로컬 컨텍스트에서 제거
+      removeDestination(placeId);
+
+      // 2. 로그인 상태면 DB에서도 제거
+      if (session) {
+        fetcher.submit(
+          { intent: "delete", placeId },
+          { method: "POST" }
+        );
+      }
     }
   };
 
@@ -180,7 +205,7 @@ export default function RoutePage() {
   };
 
   // sortedPlaces를 useMemo로 메모이제이션하여 무한 루프 방지
-  const sortedPlaces = useMemo(() => optimizeRoute(likedPlaces), [likedPlaces]);
+  const sortedPlaces = useMemo(() => optimizeRoute(displayPlaces), [displayPlaces]);
   const routeInfo = calculateRouteInfo(sortedPlaces);
 
   const isActive = (path: string) => location.pathname === path;
@@ -212,7 +237,7 @@ export default function RoutePage() {
   };
 
   // 선택된 여행지가 없으면
-  if (likedPlaces.length === 0) {
+  if (displayPlaces.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background-dark text-white px-6">
         <p className="text-xl font-bold mb-4">아직 찜한 여행지가 없습니다</p>
