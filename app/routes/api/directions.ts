@@ -19,10 +19,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (allKorean) {
             console.log(`[Direction API] Using Kakao Directions for ${places.length} places...`);
-            const kakaoKey = process.env.VITE_KAKAO_MAP_REST_API_KEY;
+            // Vercel: 서버 사이드에서는 VITE_ 접두사 없이 환경 변수 사용
+            // 로컬: VITE_ 접두사 있거나 없이 모두 지원
+            const kakaoKey = process.env.KAKAO_MAP_REST_API_KEY || process.env.VITE_KAKAO_MAP_REST_API_KEY;
 
             if (!kakaoKey) {
-                console.error("[Direction API] CRITICAL: VITE_KAKAO_MAP_REST_API_KEY is missing in .env");
+                console.error("[Direction API] CRITICAL: KAKAO_MAP_REST_API_KEY or VITE_KAKAO_MAP_REST_API_KEY is missing");
                 return new Response(JSON.stringify({ error: "Missing Kakao API Key" }), { status: 500 });
             }
 
@@ -45,10 +47,11 @@ export async function action({ request }: ActionFunctionArgs) {
             location: { latLng: { latitude: p.lat, longitude: p.lng } }
         }));
 
-        const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+        // Vercel: 서버 사이드에서는 VITE_ 접두사 없이 환경 변수 사용
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
 
         if (!apiKey) {
-            console.error("[Direction API] Missing Google API Key.");
+            console.error("[Direction API] Missing Google API Key (GOOGLE_MAPS_API_KEY or VITE_GOOGLE_MAPS_API_KEY).");
             return new Response(JSON.stringify({ error: "Configuration Error" }), { status: 500 });
         }
 

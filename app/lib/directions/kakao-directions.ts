@@ -25,10 +25,11 @@ export interface DirectionsResponse {
  */
 export async function fetchKakaoDirections(request: DirectionsRequest): Promise<DirectionsResponse> {
     const { places } = request;
-    const apiKey = process.env.VITE_KAKAO_MAP_REST_API_KEY;
+    // Vercel: 서버 사이드에서는 VITE_ 접두사 없이 환경 변수 사용
+    const apiKey = process.env.KAKAO_MAP_REST_API_KEY || process.env.VITE_KAKAO_MAP_REST_API_KEY;
 
     if (!apiKey) {
-        throw new Error("Missing Kakao REST API Key (VITE_KAKAO_MAP_REST_API_KEY)");
+        throw new Error("Missing Kakao REST API Key (KAKAO_MAP_REST_API_KEY or VITE_KAKAO_MAP_REST_API_KEY)");
     }
 
     if (places.length < 2) {

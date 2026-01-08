@@ -159,9 +159,21 @@ function KakaoDirectionsInternal({ places }: DirectionsOptimizerProps) {
                 }),
             });
 
-            if (!response.ok) throw new Error("Failed to fetch Kakao directions");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+                console.error("[KakaoDirectionsInternal] API Error:", response.status, errorData);
+                throw new Error(`Failed to fetch Kakao directions: ${errorData.error || response.statusText}`);
+            }
 
             const data = await response.json();
+            
+            // Check response structure
+            if (!data.routes || !Array.isArray(data.routes) || data.routes.length === 0) {
+                console.warn("[KakaoDirectionsInternal] No routes in response:", data);
+                setRoutePath(places.map(p => p.coordinates));
+                return;
+            }
+
             const path = data.routes[0].path;
 
             if (path && Array.isArray(path) && path.length > 0) {
@@ -176,6 +188,7 @@ function KakaoDirectionsInternal({ places }: DirectionsOptimizerProps) {
                     setTimeout(() => kakaoMap.setBounds(bounds), 500);
                 }
             } else {
+                console.warn("[KakaoDirectionsInternal] Empty path in response");
                 setRoutePath(places.map(p => p.coordinates));
             }
         } catch (error) {
