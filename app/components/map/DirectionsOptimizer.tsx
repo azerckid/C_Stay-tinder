@@ -71,14 +71,22 @@ function GoogleDirectionsInternal({ places, onRouteCalculated }: DirectionsOptim
             return id ? { placeId: id } : { lat: places[idx].coordinates.lat, lng: places[idx].coordinates.lng };
         };
 
+        const waypoints = placeIds.slice(1, -1).map((id, i) => ({
+            location: id ? { placeId: id } : { lat: places[i + 1].coordinates.lat, lng: places[i + 1].coordinates.lng },
+            stopover: true
+        }));
+
+        // Google Maps TRANSIT mode requires exactly 2 waypoints
+        // Use DRIVE mode for flexibility with any number of waypoints
+        const travelMode = waypoints.length === 2 
+            ? google.maps.TravelMode.TRANSIT 
+            : google.maps.TravelMode.DRIVING;
+
         const request: google.maps.DirectionsRequest = {
             origin: getPoint(0),
             destination: getPoint(places.length - 1),
-            waypoints: placeIds.slice(1, -1).map((id, i) => ({
-                location: id ? { placeId: id } : { lat: places[i + 1].coordinates.lat, lng: places[i + 1].coordinates.lng },
-                stopover: true
-            })),
-            travelMode: google.maps.TravelMode.TRANSIT,
+            waypoints: waypoints,
+            travelMode: travelMode,
         };
 
         service.route(request, (result, status) => {
@@ -96,7 +104,21 @@ function GoogleDirectionsInternal({ places, onRouteCalculated }: DirectionsOptim
                 fullPath.forEach(p => bounds.extend(p));
                 map?.fitBounds(bounds, 50);
             } else {
-                setRoutePath(places.map(p => p.coordinates));
+                console.warn(`[GoogleDirectionsInternal] Directions API failed: ${status}`, {
+                    waypointsCount: waypoints.length,
+                    travelMode,
+                    placesCount: places.length
+                });
+                // Fallback to straight line connection
+                const fallbackPath = places.map(p => p.coordinates);
+                setRoutePath(fallbackPath);
+                
+                // Fit bounds to fallback path
+                if (map && fallbackPath.length > 0) {
+                    const bounds = new google.maps.LatLngBounds();
+                    fallbackPath.forEach(p => bounds.extend(p));
+                    map.fitBounds(bounds, 50);
+                }
             }
         });
     }, [places, map, onRouteCalculated, getPlaceId]);

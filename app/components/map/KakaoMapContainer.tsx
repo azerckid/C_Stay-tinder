@@ -26,7 +26,7 @@ export function KakaoMapContainer({
 
     useEffect(() => {
         let retryCount = 0;
-        const maxRetries = 50; // 5 seconds total
+        const maxRetries = 100; // 10 seconds total (increased for Vercel deployment)
 
         const loadMap = () => {
             if (window.kakao && window.kakao.maps) {
@@ -42,32 +42,45 @@ export function KakaoMapContainer({
                         const newMap = new window.kakao.maps.Map(containerRef.current, options);
                         setMap(newMap);
                         setIsLoaded(true);
+                        console.log("[KakaoMapContainer] Map initialized successfully");
                     } catch (e) {
-                        console.error("Failed to initialize Kakao Map:", e);
+                        console.error("[KakaoMapContainer] Failed to initialize Kakao Map:", e);
                         onError?.("Initialization Failed");
                     }
                 });
             }
         };
 
-        if (window.kakao && window.kakao.maps) {
-            loadMap();
-        } else {
-            const interval = setInterval(() => {
-                if (window.kakao && window.kakao.maps) {
-                    loadMap();
-                    clearInterval(interval);
-                } else {
-                    retryCount++;
-                    if (retryCount >= maxRetries) {
-                        clearInterval(interval);
-                        console.error("Kakao Maps SDK failed to load");
-                        onError?.("SDK Load Timeout");
-                    }
-                }
-            }, 100);
-            return () => clearInterval(interval);
+        // Check if SDK script is loaded
+        const checkSDKLoaded = () => {
+            if (window.kakao && window.kakao.maps && window.kakao.maps.load) {
+                loadMap();
+                return true;
+            }
+            return false;
+        };
+
+        // Try immediate load
+        if (checkSDKLoaded()) {
+            return;
         }
+
+        // Wait for SDK to load (for async/defer scripts)
+        const interval = setInterval(() => {
+            if (checkSDKLoaded()) {
+                clearInterval(interval);
+            } else {
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    clearInterval(interval);
+                    console.error("[KakaoMapContainer] SDK Load Timeout after", retryCount * 100, "ms");
+                    console.warn("[KakaoMapContainer] Check if VITE_KAKAO_MAP_APP_KEY is set in Vercel environment variables");
+                    onError?.("SDK Load Timeout");
+                }
+            }
+        }, 100);
+        
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
